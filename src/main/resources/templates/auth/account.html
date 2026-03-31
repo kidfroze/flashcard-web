@@ -25,7 +25,8 @@
         <form th:action="@{/account/update-email}" method="post" th:object="${accountForm}">
             <div>
                 <label for="currentPasswordForEmail">Mật khẩu hiện tại</label>
-                <input type="password" id="currentPasswordForEmail" name="currentPassword" th:value="*{currentPassword}" required />
+                <input type="password" id="currentPasswordForEmail" name="currentPassword" th:value="*{currentPassword}"
+                    required />
             </div>
             <div>
                 <label for="email">Email mới</label>
