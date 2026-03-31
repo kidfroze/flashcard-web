@@ -32,7 +32,7 @@ public class StudyService {
                                 .orElseThrow(() -> new RuntimeException("Không tìm thấy deck"));
 
                 List<Flashcard> dueCards = flashcardRepository.findDueFlashcards(
-                                deckId, userId, LocalDateTime.now());
+                                deckId, userId, LocalDateTime.now(), FlashcardProgress.Status.MASTERED);
 
                 if (dueCards.isEmpty()) {
                         return null; // Hoàn thành session
@@ -136,7 +136,7 @@ public class StudyService {
 
                 // Tính số card còn lại
                 List<Flashcard> dueCards = flashcardRepository.findDueFlashcards(
-                                deckId, userId, LocalDateTime.now());
+                                deckId, userId, LocalDateTime.now(), FlashcardProgress.Status.MASTERED);
                 int remaining = dueCards.size();
 
                 return StudySessionDTO.builder()

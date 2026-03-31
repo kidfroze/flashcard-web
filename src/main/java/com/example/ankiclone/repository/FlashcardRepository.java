@@ -1,6 +1,7 @@
 package com.example.ankiclone.repository;
 
 import com.example.ankiclone.model.Flashcard;
+import com.example.ankiclone.model.FlashcardProgress;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,7 +31,7 @@ public interface FlashcardRepository extends JpaRepository<Flashcard, Integer> {
                 SELECT fp.flashcard.flashcardId FROM FlashcardProgress fp
                 WHERE fp.user.userId = :userId
                   AND (fp.nextReview IS NULL OR fp.nextReview <= :now)
-                  AND fp.status <> 'MASTERED'
+                  AND fp.status <> :masteredStatus
             )
           )
         ORDER BY f.flashcardId
@@ -38,6 +39,7 @@ public interface FlashcardRepository extends JpaRepository<Flashcard, Integer> {
     List<Flashcard> findDueFlashcards(
         @Param("deckId") Integer deckId,
         @Param("userId") Integer userId,
-        @Param("now") LocalDateTime now
+        @Param("now") LocalDateTime now,
+        @Param("masteredStatus") FlashcardProgress.Status masteredStatus
     );
 }

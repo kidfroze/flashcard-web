@@ -1,73 +1,88 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AnkiClone - Trang chủ</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
 </head>
+
 <body>
 
-<nav>
-    <a th:href="@{/}"><strong>AnkiClone</strong></a>
-    <span> | </span>
-    <a th:href="@{/decks/new}">+ Tạo Deck Mới</a>
-</nav>
-<hr/>
+    <nav>
+        <div style="display:inline-block;">
+            <a th:href="@{/}"><strong>AnkarD</strong></a>
+            <span> | </span>
+            <a th:href="@{/decks/new}">+ Tạo Deck Mới</a>
+            <span> | </span>
+            <a th:href="@{/public-decks}">Xem Deck Được chia sẻ</a>
+        </div>
+        <div style="display:inline-block; float:right;">
+            <span th:if="${username != null}">Xin chào <strong th:text="${username}"></strong></span>
+            <a th:if="${username != null}" th:href="@{/account}" style="margin-left:12px;">Tài khoản</a>
+            <form th:if="${username != null}" th:action="@{/logout}" method="post"
+                style="display:inline; margin-left:12px;">
+                <button type="submit">Đăng xuất</button>
+            </form>
+            <a th:if="${username == null}" th:href="@{/login}" style="margin-left:12px;">Đăng nhập</a>
+        </div>
+    </nav>
+    <hr />
 
-<div th:if="${success}" class="msg-success" th:text="${success}"></div>
-<div th:if="${error}"   class="msg-error"   th:text="${error}"></div>
+    <div th:if="${success}" class="msg-success" th:text="${success}"></div>
+    <div th:if="${error}" class="msg-error" th:text="${error}"></div>
 
-<h2>Danh sách Deck của bạn</h2>
+    <h2>Danh sách Deck của bạn</h2>
 
-<!-- Không có deck nào -->
-<div th:if="${#lists.isEmpty(decks)}">
-    <p>Bạn chưa có deck nào. <a th:href="@{/decks/new}">Tạo deck đầu tiên</a>.</p>
-</div>
+    <!-- Không có deck nào -->
+    <div th:if="${#lists.isEmpty(decks)}">
+        <p>Bạn chưa có deck nào. <a th:href="@{/decks/new}">Tạo deck đầu tiên</a>.</p>
+    </div>
 
-<!-- Bảng danh sách deck -->
-<table th:unless="${#lists.isEmpty(decks)}" border="1" cellpadding="8" cellspacing="0">
-    <thead>
-        <tr>
-            <th>Tên Deck</th>
-            <th>Mô tả</th>
-            <th>Mới</th>
-            <th>Đang học</th>
-            <th>Ôn tập</th>
-            <th>Tổng</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr th:each="deck : ${decks}">
-            <td>
-                <a th:href="@{/decks/{id}(id=${deck.deckId})}"
-                   th:text="${deck.title}">Tên deck</a>
-            </td>
-            <td th:text="${deck.description != null ? deck.description : '—'}">Mô tả</td>
-            <td style="color: blue;"  th:text="${deck.newCards}">0</td>
-            <td style="color: red;"   th:text="${deck.learningCards}">0</td>
-            <td style="color: green;" th:text="${deck.reviewCards}">0</td>
-            <td th:text="${deck.totalCards}">0</td>
-            <td>
-                <!-- Nút Học (chỉ hiện khi có card cần học) -->
-                <a th:if="${deck.newCards + deck.learningCards + deck.reviewCards > 0}"
-                   th:href="@{/study/{id}(id=${deck.deckId})}">
-                    <button>Học ngay</button>
-                </a>
-                <span th:unless="${deck.newCards + deck.learningCards + deck.reviewCards > 0}">
-                    ✓ Hoàn thành hôm nay
-                </span>
-                &nbsp;
-                <a th:href="@{/decks/{id}(id=${deck.deckId})}">
-                    <button>Quản lý</button>
-                </a>
-            </td>
-        </tr>
-    </tbody>
-</table>
+    <!-- Bảng danh sách deck -->
+    <table th:unless="${#lists.isEmpty(decks)}" border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Tên Deck</th>
+                <th>Mô tả</th>
+                <th>Mới</th>
+                <th>Đang học</th>
+                <th>Ôn tập</th>
+                <th>Tổng</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="deck : ${decks}">
+                <td>
+                    <a th:href="@{/decks/{id}(id=${deck.deckId})}" th:text="${deck.title}">Tên deck</a>
+                </td>
+                <td th:text="${deck.description != null ? deck.description : '—'}">Mô tả</td>
+                <td style="color: blue;" th:text="${deck.newCards}">0</td>
+                <td style="color: red;" th:text="${deck.learningCards}">0</td>
+                <td style="color: green;" th:text="${deck.reviewCards}">0</td>
+                <td th:text="${deck.totalCards}">0</td>
+                <td>
+                    <!-- Nút Học (chỉ hiện khi có card cần học) -->
+                    <a th:if="${deck.newCards + deck.learningCards + deck.reviewCards > 0}"
+                        th:href="@{/study/{id}(id=${deck.deckId})}">
+                        <button>Học ngay</button>
+                    </a>
+                    <span th:unless="${deck.newCards + deck.learningCards + deck.reviewCards > 0}">
+                        ✓ Hoàn thành hôm nay
+                    </span>
+                    &nbsp;
+                    <a th:href="@{/decks/{id}(id=${deck.deckId})}">
+                        <button>Quản lý</button>
+                    </a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
-<br/>
+    <br />
 
 </body>
+
 </html>

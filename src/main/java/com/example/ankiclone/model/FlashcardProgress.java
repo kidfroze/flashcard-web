@@ -47,7 +47,7 @@ public class FlashcardProgress {
     @Column(name = "next_review")
     private LocalDateTime nextReview;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = FlashcardProgressStatusConverter.class)
     @Column(name = "status")
     private Status status = Status.NEW;
 

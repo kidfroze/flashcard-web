@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý tài khoản</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+
+<body>
+
+    <nav>
+        <a th:href="@{/}">← Trang chủ</a>
+    </nav>
+    <hr />
+
+    <div th:if="${success}" class="msg-success" th:text="${success}"></div>
+    <div th:if="${error}" class="msg-error" th:text="${error}"></div>
+
+    <h2>Account Settings</h2>
+
+    <section>
+        <h3>Cập nhật Email</h3>
+        <form th:action="@{/account/update-email}" method="post" th:object="${accountForm}">
+            <div>
+                <label for="currentPasswordForEmail">Mật khẩu hiện tại</label>
+                <input type="password" id="currentPasswordForEmail" name="currentPassword" th:value="*{currentPassword}" required />
+            </div>
+            <div>
+                <label for="email">Email mới</label>
+                <input type="email" id="email" name="email" th:value="*{email}" required />
+            </div>
+            <div style="margin-top: 8px;">
+                <button type="submit">Lưu email</button>
+            </div>
+        </form>
+    </section>
+
+    <section style="margin-top: 24px;">
+        <h3>Đổi mật khẩu</h3>
+        <form th:action="@{/account/change-password}" method="post" th:object="${accountForm}">
+            <div>
+                <label for="currentPassword">Mật khẩu hiện tại</label>
+                <input type="password" id="currentPassword" name="currentPassword" th:value="*{currentPassword}"
+                    required />
+            </div>
+            <div>
+                <label for="newPassword">Mật khẩu mới</label>
+                <input type="password" id="newPassword" name="newPassword" th:value="*{newPassword}" required />
+            </div>
+            <div>
+                <label for="confirmNewPassword">Nhập lại mật khẩu mới</label>
+                <input type="password" id="confirmNewPassword" name="confirmNewPassword"
+                    th:value="*{confirmNewPassword}" required />
+            </div>
+            <div style="margin-top: 8px;">
+                <button type="submit">Đổi mật khẩu</button>
+            </div>
+        </form>
+    </section>
+
+    <section style="margin-top: 30px;">
+        <h3>Xóa tài khoản</h3>
+        <form th:action="@{/account/delete}" method="post"
+            onsubmit="return confirm('Bạn chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.');">
+            <button type="submit" style="background-color: #f44336; color: white;">Xóa tài khoản</button>
+        </form>
+    </section>
+
+</body>
+
+</html>

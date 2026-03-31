@@ -3,6 +3,7 @@ package com.example.ankiclone.service;
 import com.example.ankiclone.dto.DeckFormDTO;
 import com.example.ankiclone.dto.DeckSummaryDTO;
 import com.example.ankiclone.model.Deck;
+import com.example.ankiclone.model.Flashcard;
 import com.example.ankiclone.model.User;
 import com.example.ankiclone.model.UserDeck;
 import com.example.ankiclone.repository.*;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -36,10 +38,10 @@ public class DeckService {
     }
 
     private DeckSummaryDTO buildDeckSummary(Deck deck, Integer userId) {
-        long total    = flashcardRepository.countByDeck_DeckId(deck.getDeckId());
+        long total = flashcardRepository.countByDeck_DeckId(deck.getDeckId());
         long newCards = flashcardProgressRepository.countNewCards(deck.getDeckId(), userId);
         long learning = flashcardProgressRepository.countLearningCards(deck.getDeckId(), userId);
-        long review   = flashcardProgressRepository.countReviewCards(deck.getDeckId(), userId);
+        long review = flashcardProgressRepository.countReviewCards(deck.getDeckId(), userId);
 
         return DeckSummaryDTO.builder()
                 .deckId(deck.getDeckId())
@@ -58,6 +60,14 @@ public class DeckService {
     public Deck getDeckById(Integer deckId) {
         return deckRepository.findById(deckId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy deck id=" + deckId));
+    }
+
+    public Deck getPublicDeckById(Integer deckId) {
+        Deck deck = getDeckById(deckId);
+        if (deck.getIsPublic() == null || !deck.getIsPublic()) {
+            throw new RuntimeException("Deck này không được chia sẻ công khai.");
+        }
+        return deck;
     }
 
     @Transactional
@@ -108,6 +118,45 @@ public class DeckService {
         userDeckRepository.save(userDeck);
     }
 
+    /**
+     * Import (copy) một deck public về tài khoản user hiện tại.
+     * - Tạo deck mới (created_by = current user)
+     * - Copy toàn bộ flashcards sang deck mới
+     * - Deck mới mặc định là private để tránh chia sẻ ngoài ý muốn
+     */
+    @Transactional
+    public Deck importPublicDeck(Integer sourceDeckId, Integer userId) {
+        Deck sourceDeck = getPublicDeckById(sourceDeckId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy user id=" + userId));
+
+        Deck newDeck = Deck.builder()
+                .createdBy(user)
+                .title(sourceDeck.getTitle())
+                .description(sourceDeck.getDescription())
+                .isPublic(false)
+                .build();
+
+        newDeck = deckRepository.save(newDeck);
+
+        List<Flashcard> sourceCards = flashcardRepository.findByDeck_DeckId(sourceDeckId);
+        List<Flashcard> copies = new ArrayList<>(sourceCards.size());
+        for (Flashcard c : sourceCards) {
+            copies.add(Flashcard.builder()
+                    .deck(newDeck)
+                    .frontContent(c.getFrontContent())
+                    .backContent(c.getBackContent())
+                    .exampleSentence(c.getExampleSentence())
+                    .pronunciation(c.getPronunciation())
+                    .imageUrl(c.getImageUrl())
+                    .audioUrl(c.getAudioUrl())
+                    .build());
+        }
+        flashcardRepository.saveAll(copies);
+
+        return newDeck;
+    }
+
     // ========== DECK CÔNG KHAI (KHÁM PHÁ) ==========
 
     public List<DeckSummaryDTO> getPublicDecks(Integer userId) {
@@ -115,5 +164,12 @@ public class DeckService {
         return publicDecks.stream()
                 .map(deck -> buildDeckSummary(deck, userId))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void hidePublicDeck(Integer deckId) {
+        Deck deck = getDeckById(deckId);
+        deck.setIsPublic(false);
+        deckRepository.save(deck);
     }
 }

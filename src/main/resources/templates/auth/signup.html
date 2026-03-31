@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Sign Up</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<nav style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <a th:href="@{/}"><strong>AnkarD</strong></a>
+    </div>
+    <div>
+        <a th:href="@{/login}">
+            <button type="button">Login</button>
+        </a>
+    </div>
+</nav>
+<hr/>
+
+<div th:if="${success}" class="msg-success" th:text="${success}"></div>
+<div th:if="${error}"   class="msg-error"   th:text="${error}"></div>
+
+<div style="max-width: 760px; margin: 0 auto;">
+    <h1 style="margin: 10px 0 6px 0;">Sign Up</h1>
+    <p style="color:#666; margin-top:0;">Create a new account.</p>
+
+    <form th:action="@{/signup}" th:object="${signupForm}" method="post" style="margin-top: 18px;">
+        <div style="margin-bottom: 14px;">
+            <label style="display:block; margin-bottom:6px; color:#444;">Username</label>
+            <input type="text" th:field="*{username}" placeholder="Username"
+                   style="width:100%; padding:10px 12px; font-size:14px;"/>
+            <div class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+            <label style="display:block; margin-bottom:6px; color:#444;">Email</label>
+            <input type="email" th:field="*{email}" placeholder="Email"
+                   style="width:100%; padding:10px 12px; font-size:14px;"/>
+            <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+            <label style="display:block; margin-bottom:6px; color:#444;">Password</label>
+            <input type="password" th:field="*{password}" placeholder="Password"
+                   style="width:100%; padding:10px 12px; font-size:14px;"/>
+            <div class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+            <label style="display:block; margin-bottom:6px; color:#444;">Confirm password</label>
+            <input type="password" th:field="*{confirmPassword}" placeholder="Confirm password"
+                   style="width:100%; padding:10px 12px; font-size:14px;"/>
+            <div class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></div>
+        </div>
+
+        <button type="submit" style="padding:10px 18px; font-size:14px; background:#1f6feb; border-color:#1f6feb; color:#fff;">
+            Create account
+        </button>
+    </form>
+
+    <p style="margin-top: 14px;">
+        Đã có tài khoản? <a th:href="@{/login}">Login</a>
+    </p>
+</div>
+
+</body>
+</html>
+

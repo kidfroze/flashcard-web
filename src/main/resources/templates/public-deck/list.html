@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deck được chia sẻ</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+
+<body>
+
+    <nav>
+        <a th:href="@{/}">← Trang chủ</a>
+        <span> | </span>
+        <a th:href="@{/decks/new}">+ Tạo Deck Mới</a>
+    </nav>
+    <hr />
+
+    <div th:if="${success}" class="msg-success" th:text="${success}"></div>
+    <div th:if="${error}" class="msg-error" th:text="${error}"></div>
+
+    <h2>Deck được chia sẻ công khai</h2>
+
+    <div th:if="${#lists.isEmpty(publicDecks)}">
+        <p>Hiện chưa có deck công khai nào.</p>
+    </div>
+
+    <table th:unless="${#lists.isEmpty(publicDecks)}" border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Tên Deck</th>
+                <th>Mô tả</th>
+                <th>Tổng</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="d : ${publicDecks}">
+                <td>
+                    <a th:href="@{/public-decks/{id}(id=${d.deckId})}" th:text="${d.title}">Tên deck</a>
+                </td>
+                <td th:text="${d.description != null ? d.description : '—'}">Mô tả</td>
+                <td th:text="${d.totalCards}">0</td>
+                <td>
+                    <a th:href="@{/public-decks/{id}(id=${d.deckId})}">
+                        <button>Xem</button>
+                    </a>
+                    &nbsp;
+                    <form th:action="@{/public-decks/{id}/import(id=${d.deckId})}" method="post" style="display:inline;"
+                        onsubmit="return confirm('Import deck này về tài khoản của bạn? Deck mới sẽ là bản sao để bạn chỉnh sửa.');">
+                        <button type="submit">Import</button>
+                    </form>
+                    &nbsp;
+                    <form th:if="${role != null and role.toLowerCase() == 'admin'}"
+                        th:action="@{/public-decks/{id}/hide(id=${d.deckId})}" method="post" style="display:inline;"
+                        onsubmit="return confirm('Ẩn deck này khỏi danh sách công khai?');">
+                        <button type="submit" style="background-color: #f44336; color: white;">Ẩn</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+
+</html>

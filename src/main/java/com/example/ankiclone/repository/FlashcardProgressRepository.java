@@ -26,20 +26,18 @@ public interface FlashcardProgressRepository extends JpaRepository<FlashcardProg
     long countNewCards(@Param("deckId") Integer deckId, @Param("userId") Integer userId);
 
     // Đếm số card "learning" trong deck
-    @Query("""
-        SELECT COUNT(fp) FROM FlashcardProgress fp
-        WHERE fp.flashcard.deck.deckId = :deckId
-          AND fp.user.userId = :userId
-          AND fp.status = 'LEARNING'
-    """)
-    long countLearningCards(@Param("deckId") Integer deckId, @Param("userId") Integer userId);
+    long countByFlashcard_Deck_DeckIdAndUser_UserIdAndStatus(
+        Integer deckId,
+        Integer userId,
+        FlashcardProgress.Status status
+    );
 
-    // Đếm số card "review" trong deck
-    @Query("""
-        SELECT COUNT(fp) FROM FlashcardProgress fp
-        WHERE fp.flashcard.deck.deckId = :deckId
-          AND fp.user.userId = :userId
-          AND fp.status = 'REVIEW'
-    """)
-    long countReviewCards(@Param("deckId") Integer deckId, @Param("userId") Integer userId);
+    // Backwards-compatible helper method names (optional)
+    default long countLearningCards(Integer deckId, Integer userId) {
+        return countByFlashcard_Deck_DeckIdAndUser_UserIdAndStatus(deckId, userId, FlashcardProgress.Status.LEARNING);
+    }
+
+    default long countReviewCards(Integer deckId, Integer userId) {
+        return countByFlashcard_Deck_DeckIdAndUser_UserIdAndStatus(deckId, userId, FlashcardProgress.Status.REVIEW);
+    }
 }

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${deck.title} + ' - Deck được chia sẻ'">Deck được chia sẻ</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<nav>
+    <a th:href="@{/public-decks}">← Deck được chia sẻ</a>
+    <span> | </span>
+    <a th:href="@{/}">Trang chủ</a>
+</nav>
+<hr/>
+
+<div th:if="${success}" class="msg-success" th:text="${success}"></div>
+<div th:if="${error}"   class="msg-error"   th:text="${error}"></div>
+
+<h2 th:text="${deck.title}">Tên Deck</h2>
+<p th:text="${deck.description != null ? deck.description : '—'}">Mô tả</p>
+<p>Tổng số card: <strong th:text="${#lists.size(flashcards)}">0</strong></p>
+
+<form th:action="@{/public-decks/{id}/import(id=${deck.deckId})}" method="post"
+      style="display:inline;"
+      onsubmit="return confirm('Import deck này về tài khoản của bạn? Deck mới sẽ là bản sao để bạn chỉnh sửa.');">
+    <button type="submit">Import deck này</button>
+</form>
+
+<hr/>
+
+<h3>Danh sách Flashcard</h3>
+
+<div th:if="${#lists.isEmpty(flashcards)}">
+    <p>Deck này chưa có flashcard.</p>
+</div>
+
+<table th:unless="${#lists.isEmpty(flashcards)}" border="1" cellpadding="8" cellspacing="0">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Mặt trước</th>
+        <th>Mặt sau</th>
+        <th>Phát âm</th>
+        <th>Câu ví dụ</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="card, iterStat : ${flashcards}">
+        <td th:text="${iterStat.index + 1}">1</td>
+        <td th:text="${card.frontContent}">Front</td>
+        <td th:text="${card.backContent}">Back</td>
+        <td th:text="${card.pronunciation != null ? card.pronunciation : '—'}">—</td>
+        <td th:text="${card.exampleSentence != null ? card.exampleSentence : '—'}">—</td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
+

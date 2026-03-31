@@ -47,12 +47,12 @@
             </div>
 
             <!-- Ảnh -->
-            <div th:if="${studySession.imageUrl != null}">
+            <div th:if="${!#strings.isEmpty(studySession.imageUrl)}">
                 <img th:src="${studySession.imageUrl}" alt="Ảnh minh họa" style="max-width:300px; max-height:200px;" />
             </div>
 
             <!-- Âm thanh -->
-            <div th:if="${studySession.audioUrl != null}">
+            <div th:if="${!#strings.isEmpty(studySession.audioUrl)}">
                 <audio controls>
                     <source th:src="${studySession.audioUrl}" />
                     Trình duyệt không hỗ trợ audio.
