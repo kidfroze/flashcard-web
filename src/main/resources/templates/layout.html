@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:replace="${title}">AnkiClone</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <a th:href="@{/}">Decks</a>
+    <span> | </span>
+    <a th:href="@{/decks/new}">Tạo Deck</a>
+</nav>
+
+<hr/>
+
+<!-- Flash messages -->
+<div th:if="${success}" class="msg-success">
+    <span th:text="${success}"></span>
+</div>
+<div th:if="${error}" class="msg-error">
+    <span th:text="${error}"></span>
+</div>
+
+<!-- Nội dung chính -->
+<main th:replace="${content}">
+    <!-- page content goes here -->
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

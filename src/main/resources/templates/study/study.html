@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="'Học: ' + ${studySession.deckTitle}">Học Flashcard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+
+<body>
+
+    <nav>
+        <a th:href="@{/}">← Trang chủ</a>
+        <span> | </span>
+        <a th:href="@{/decks/{id}(id=${studySession.deckId})}">← Quản lý Deck</a>
+    </nav>
+    <hr />
+
+    <!-- Tiêu đề + progress -->
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 th:text="${studySession.deckTitle}">Tên Deck</h2>
+        <span th:text="${studySession.remainingCards} + ' thẻ còn lại'">0 thẻ còn lại</span>
+
+    </div>
+
+    <!-- ===================== FLASHCARD ===================== -->
+    <div class="flashcard-box">
+
+        <!-- Phát âm (nếu có) - chỉ hiện khi show answer -->
+        <div th:if="${showAnswer and studySession.pronunciation != null}" class="pronunciation">
+            <small th:text="${studySession.pronunciation}"></small>
+        </div>
+
+        <!-- Mặt trước -->
+        <div class="flashcard-front">
+            <p th:text="${studySession.frontContent}">Front content</p>
+        </div>
+
+        <!-- Mặt sau (chỉ hiện khi showAnswer = true) -->
+        <div th:if="${showAnswer}" class="flashcard-back">
+            <hr />
+            <p><strong th:text="${studySession.backContent}">Back content</strong></p>
+
+            <!-- Câu ví dụ -->
+            <div th:if="${studySession.exampleSentence != null}">
+                <p><em th:text="${studySession.exampleSentence}">Example sentence</em></p>
+            </div>
+
+            <!-- Ảnh -->
+            <div th:if="${studySession.imageUrl != null}">
+                <img th:src="${studySession.imageUrl}" alt="Ảnh minh họa" style="max-width:300px; max-height:200px;" />
+            </div>
+
+            <!-- Âm thanh -->
+            <div th:if="${studySession.audioUrl != null}">
+                <audio controls>
+                    <source th:src="${studySession.audioUrl}" />
+                    Trình duyệt không hỗ trợ audio.
+                </audio>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===================== NÚT HÀNH ĐỘNG ===================== -->
+
+    <!-- Chưa lật thẻ: nút "Hiển thị đáp án" -->
+    <div th:unless="${showAnswer}" style="text-align: center; margin-top: 20px;">
+        <form th:action="@{/study/{id}/show-answer(id=${studySession.deckId})}" method="post">
+            <input type="hidden" name="flashcardId" th:value="${studySession.flashcardId}" />
+            <button type="submit" style="padding: 10px 40px; font-size: 16px;">
+                Hiển thị đáp án
+            </button>
+        </form>
+    </div>
+
+    <!-- Đã lật thẻ: 4 nút đánh giá -->
+    <div th:if="${showAnswer}" style="text-align: center; margin-top: 20px;">
+        <form th:action="@{/study/{id}/review(id=${studySession.deckId})}" method="post">
+            <input type="hidden" name="flashcardId" th:value="${studySession.flashcardId}" />
+
+            <!-- Again -->
+            <span style="display: inline-block; text-align: center; margin: 0 5px;">
+                <small th:text="${labels[0]}"></small><br />
+                <button type="submit" name="result" value="again"
+                    style="min-width: 80px; padding: 8px 12px;">Again</button>
+            </span>
+
+            <!-- Hard -->
+            <span style="display: inline-block; text-align: center; margin: 0 5px;">
+                <small th:text="${labels[1]}"></small><br />
+                <button type="submit" name="result" value="hard"
+                    style="min-width: 80px; padding: 8px 12px;">Hard</button>
+            </span>
+
+            <!-- Good -->
+            <span style="display: inline-block; text-align: center; margin: 0 5px;">
+                <small th:text="${labels[2]}"></small><br />
+                <button type="submit" name="result" value="good"
+                    style="min-width: 80px; padding: 8px 12px; font-weight: bold;">Good</button>
+            </span>
+
+            <!-- Easy -->
+            <span style="display: inline-block; text-align: center; margin: 0 5px;">
+                <small th:text="${labels[3]}"></small><br />
+                <button type="submit" name="result" value="easy"
+                    style="min-width: 80px; padding: 8px 12px;">Easy</button>
+            </span>
+        </form>
+    </div>
+
+</body>
+
+</html>

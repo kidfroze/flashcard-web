@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${deck.title} + ' - Chi tiết'">Chi tiết Deck</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<nav>
+    <a th:href="@{/}">← Trang chủ</a>
+    <span> | </span>
+    <a th:href="@{/decks/new}">+ Tạo Deck Mới</a>
+</nav>
+<hr/>
+
+<div th:if="${success}" class="msg-success" th:text="${success}"></div>
+<div th:if="${error}"   class="msg-error"   th:text="${error}"></div>
+
+<!-- Thông tin deck -->
+<h2 th:text="${deck.title}">Tên Deck</h2>
+<p th:text="${deck.description}">Mô tả</p>
+<p>Tổng số card: <strong th:text="${#lists.size(flashcards)}">0</strong></p>
+
+<!-- Nút hành động deck -->
+<a th:href="@{/study/{id}(id=${deck.deckId})}">
+    <button th:disabled="${#lists.isEmpty(flashcards)}">▶ Bắt đầu học</button>
+</a>
+<a th:href="@{/decks/{id}/edit(id=${deck.deckId})}">
+    <button>✏ Sửa Deck</button>
+</a>
+<form th:action="@{/decks/{id}/delete(id=${deck.deckId})}" method="post"
+      style="display:inline;"
+      onsubmit="return confirm('Xóa deck này và toàn bộ flashcard?')">
+    <button type="submit">🗑 Xóa Deck</button>
+</form>
+
+<hr/>
+
+<!-- ========== FORM THÊM FLASHCARD NHANH ========== -->
+<h3>Thêm Flashcard Mới</h3>
+<form th:action="@{/decks/{id}/flashcards(id=${deck.deckId})}"
+      th:object="${flashcardForm}" method="post">
+
+    <table>
+        <tr>
+            <td><label>Mặt trước *</label></td>
+            <td>
+                <input type="text" th:field="*{frontContent}" placeholder="Từ / câu hỏi" size="40"/>
+                <span th:if="${#fields.hasErrors('frontContent')}"
+                      th:errors="*{frontContent}" class="field-error"></span>
+            </td>
+        </tr>
+        <tr>
+            <td><label>Mặt sau *</label></td>
+            <td>
+                <input type="text" th:field="*{backContent}" placeholder="Nghĩa / đáp án" size="40"/>
+                <span th:if="${#fields.hasErrors('backContent')}"
+                      th:errors="*{backContent}" class="field-error"></span>
+            </td>
+        </tr>
+        <tr>
+            <td><label>Phát âm</label></td>
+            <td><input type="text" th:field="*{pronunciation}" placeholder="ví dụ: /kəmˈpeər/" size="40"/></td>
+        </tr>
+        <tr>
+            <td><label>Ví dụ</label></td>
+            <td><textarea th:field="*{exampleSentence}" rows="2" cols="40" placeholder="Câu ví dụ..."></textarea></td>
+        </tr>
+        <tr>
+            <td><label>URL ảnh</label></td>
+            <td><input type="text" th:field="*{imageUrl}" placeholder="https://..." size="40"/></td>
+        </tr>
+        <tr>
+            <td><label>URL âm thanh</label></td>
+            <td><input type="text" th:field="*{audioUrl}" placeholder="https://..." size="40"/></td>
+        </tr>
+    </table>
+
+    <br/>
+    <button type="submit">+ Thêm Flashcard</button>
+</form>
+
+<hr/>
+
+<!-- ========== DANH SÁCH FLASHCARD ========== -->
+<h3>Danh sách Flashcard</h3>
+
+<div th:if="${#lists.isEmpty(flashcards)}">
+    <p>Chưa có flashcard nào trong deck này.</p>
+</div>
+
+<table th:unless="${#lists.isEmpty(flashcards)}" border="1" cellpadding="8" cellspacing="0">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Mặt trước</th>
+            <th>Mặt sau</th>
+            <th>Phát âm</th>
+            <th>Câu ví dụ</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="card, iterStat : ${flashcards}">
+            <td th:text="${iterStat.index + 1}">1</td>
+            <td th:text="${card.frontContent}">Front</td>
+            <td th:text="${card.backContent}">Back</td>
+            <td th:text="${card.pronunciation != null ? card.pronunciation : '—'}">—</td>
+            <td th:text="${card.exampleSentence != null ? card.exampleSentence : '—'}">—</td>
+            <td>
+                <a th:href="@{/decks/{deckId}/flashcards/{cardId}/edit(deckId=${deck.deckId}, cardId=${card.flashcardId})}">
+                    <button>Sửa</button>
+                </a>
+                <form th:action="@{/decks/{deckId}/flashcards/{cardId}/delete(deckId=${deck.deckId}, cardId=${card.flashcardId})}"
+                      method="post" style="display:inline;"
+                      onsubmit="return confirm('Xóa flashcard này?')">
+                    <button type="submit">Xóa</button>
+                </form>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

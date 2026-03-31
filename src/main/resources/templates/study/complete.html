@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Hoàn thành!</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<nav>
+    <a th:href="@{/}">← Trang chủ</a>
+</nav>
+<hr/>
+
+<div style="text-align: center; margin-top: 60px;">
+    <h2>🎉 Bạn đã hoàn thành session học hôm nay!</h2>
+    <p>Không còn thẻ nào cần ôn tập lúc này.</p>
+    <p>Hãy quay lại sau khi các thẻ đến hạn ôn tập.</p>
+
+    <br/>
+    <a th:href="@{/decks/{id}(id=${deckId})}">
+        <button>Quản lý Deck</button>
+    </a>
+    &nbsp;
+    <a th:href="@{/}">
+        <button>Về Trang Chủ</button>
+    </a>
+</div>
+
+</body>
+</html>

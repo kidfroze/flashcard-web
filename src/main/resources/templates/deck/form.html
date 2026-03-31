@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${deck != null} ? 'Sửa Deck' : 'Tạo Deck Mới'">Deck Form</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<nav>
+    <a th:href="@{/}">← Trang chủ</a>
+    <th:block th:if="${deck != null}">
+        <span> | </span>
+        <a th:href="@{/decks/{id}(id=${deck.deckId})}">← Quay lại deck</a>
+    </th:block>
+</nav>
+<hr/>
+
+<h2 th:text="${deck != null} ? 'Sửa Deck' : 'Tạo Deck Mới'">Deck Form</h2>
+
+<!-- Tạo mới: action = POST /decks -->
+<!-- Sửa:     action = POST /decks/{id}/edit -->
+<form th:action="${deck != null}
+                 ? @{/decks/{id}/edit(id=${deck.deckId})}
+                 : @{/decks}"
+      th:object="${deckForm}"
+      method="post">
+
+    <table>
+        <tr>
+            <td><label>Tiêu đề *</label></td>
+            <td>
+                <input type="text" th:field="*{title}" placeholder="Ví dụ: TOEIC Vocabulary" size="40"/>
+                <span th:if="${#fields.hasErrors('title')}"
+                      th:errors="*{title}" class="field-error"></span>
+            </td>
+        </tr>
+        <tr>
+            <td><label>Mô tả</label></td>
+            <td>
+                <textarea th:field="*{description}" rows="3" cols="40"
+                          placeholder="Mô tả ngắn về deck này..."></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td><label>Công khai</label></td>
+            <td>
+                <input type="checkbox" th:field="*{isPublic}"/>
+                <small>Cho phép người khác xem deck này</small>
+            </td>
+        </tr>
+    </table>
+
+    <br/>
+    <button type="submit" th:text="${deck != null} ? 'Lưu thay đổi' : 'Tạo Deck'">Submit</button>
+    <a th:href="${deck != null} ? @{/decks/{id}(id=${deck.deckId})} : @{/}">
+        <button type="button">Hủy</button>
+    </a>
+</form>
+
+</body>
+</html>
