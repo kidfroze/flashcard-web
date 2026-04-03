@@ -1,6 +1,7 @@
 package com.example.ankiclone.repository;
 
 import com.example.ankiclone.model.Deck;
+import com.example.ankiclone.model.DeckStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,14 +14,13 @@ public interface DeckRepository extends JpaRepository<Deck, Integer> {
     // Lấy deck do user tạo
     List<Deck> findByCreatedBy_UserId(Integer userId);
 
-    // Lấy tất cả deck public
-    List<Deck> findByIsPublicTrue();
+    List<Deck> findByStatus(DeckStatus status);
 
     // Tìm kiếm các deck public theo keyword ở title hoặc description
-    @Query("SELECT d FROM Deck d WHERE d.isPublic = TRUE AND " +
+    @Query("SELECT d FROM Deck d WHERE d.status = :status AND " +
             "(LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(d.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    List<Deck> searchPublicDecksByKeyword(@Param("keyword") String keyword);
+    List<Deck> searchDecksByStatusAndKeyword(@Param("status") DeckStatus status, @Param("keyword") String keyword);
 
     // Deck mà user đã lưu (qua UserDecks)
     @Query("SELECT ud.deck FROM UserDeck ud WHERE ud.user.userId = :userId")

@@ -29,8 +29,9 @@ public class Deck {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "is_public")
-    private Boolean isPublic = true;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private DeckStatus status = DeckStatus.PRIVATE;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();

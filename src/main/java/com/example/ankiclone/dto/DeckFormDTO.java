@@ -12,5 +12,4 @@ public class DeckFormDTO {
     private String title;
 
     private String description;
-    private Boolean isPublic = true;
 }

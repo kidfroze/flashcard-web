@@ -17,6 +17,10 @@
             <a th:href="@{/decks/new}">+ Tạo Deck Mới</a>
             <span> | </span>
             <a th:href="@{/public-decks}">Xem Deck Được chia sẻ</a>
+            <th:block th:if="${role != null and role.toLowerCase() == 'admin'}">
+                <span> | </span>
+                <a th:href="@{/admin/decks/pending}">Admin duyệt deck</a>
+            </th:block>
         </div>
         <div style="display:inline-block; float:right;">
             <span th:if="${username != null}">Xin chào <strong th:text="${username}"></strong></span>
@@ -50,6 +54,7 @@
                 <th>Đang học</th>
                 <th>Ôn tập</th>
                 <th>Tổng</th>
+                <th>Trạng thái</th>
                 <th>Hành động</th>
             </tr>
         </thead>
@@ -63,6 +68,7 @@
                 <td style="color: red;" th:text="${deck.learningCards}">0</td>
                 <td style="color: green;" th:text="${deck.reviewCards}">0</td>
                 <td th:text="${deck.totalCards}">0</td>
+                <td th:text="${deck.status}">PRIVATE</td>
                 <td>
                     <!-- Nút Học (chỉ hiện khi có card cần học) -->
                     <a th:if="${deck.newCards + deck.learningCards + deck.reviewCards > 0}"

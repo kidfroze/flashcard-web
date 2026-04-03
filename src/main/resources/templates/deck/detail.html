@@ -20,20 +20,28 @@
 <!-- Thông tin deck -->
 <h2 th:text="${deck.title}">Tên Deck</h2>
 <p th:text="${deck.description}">Mô tả</p>
+<p>Trạng thái chia sẻ: <strong th:text="${deck.status}">PRIVATE</strong></p>
 <p>Tổng số card: <strong th:text="${#lists.size(flashcards)}">0</strong></p>
 
 <!-- Nút hành động deck -->
 <a th:href="@{/study/{id}(id=${deck.deckId})}">
     <button th:disabled="${#lists.isEmpty(flashcards)}">▶ Bắt đầu học</button>
 </a>
-<a th:href="@{/decks/{id}/edit(id=${deck.deckId})}">
+<a th:if="${deck.status.name() != 'PENDING'}" th:href="@{/decks/{id}/edit(id=${deck.deckId})}">
     <button>✏ Sửa Deck</button>
 </a>
+<button th:if="${deck.status.name() == 'PENDING'}" disabled>✏ Sửa Deck</button>
 <form th:action="@{/decks/{id}/delete(id=${deck.deckId})}" method="post"
       style="display:inline;"
       onsubmit="return confirm('Xóa deck này và toàn bộ flashcard?')">
-    <button type="submit">🗑 Xóa Deck</button>
+    <button type="submit" th:disabled="${deck.status.name() == 'PENDING'}">🗑 Xóa Deck</button>
 </form>
+<form th:if="${deck.status.name() == 'PRIVATE' or deck.status.name() == 'REJECTED'}"
+      th:action="@{/decks/{id}/submit-share(id=${deck.deckId})}" method="post" style="display:inline;">
+    <button type="submit">Gửi duyệt chia sẻ</button>
+</form>
+<span th:if="${deck.status.name() == 'APPROVED'}" style="color: green;">Deck đang public</span>
+<span th:if="${deck.status.name() == 'PENDING'}" style="color: #cc7a00;">Deck đang chờ admin duyệt</span>
 
 <hr/>
 
@@ -78,7 +86,7 @@
     </table>
 
     <br/>
-    <button type="submit">+ Thêm Flashcard</button>
+    <button type="submit" th:disabled="${deck.status.name() == 'PENDING'}">+ Thêm Flashcard</button>
 </form>
 
 <hr/>
@@ -110,12 +118,12 @@
             <td th:text="${card.exampleSentence != null ? card.exampleSentence : '—'}">—</td>
             <td>
                 <a th:href="@{/decks/{deckId}/flashcards/{cardId}/edit(deckId=${deck.deckId}, cardId=${card.flashcardId})}">
-                    <button>Sửa</button>
+                    <button th:disabled="${deck.status.name() == 'PENDING'}">Sửa</button>
                 </a>
                 <form th:action="@{/decks/{deckId}/flashcards/{cardId}/delete(deckId=${deck.deckId}, cardId=${card.flashcardId})}"
                       method="post" style="display:inline;"
                       onsubmit="return confirm('Xóa flashcard này?')">
-                    <button type="submit">Xóa</button>
+                    <button type="submit" th:disabled="${deck.status.name() == 'PENDING'}">Xóa</button>
                 </form>
             </td>
         </tr>

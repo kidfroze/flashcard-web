@@ -75,10 +75,18 @@ public class DeckController {
     @GetMapping("/{deckId}/edit")
     public String editDeckForm(@PathVariable Integer deckId, Model model) {
         Deck deck = deckService.getDeckById(deckId);
+        try {
+            deckService.ensureDeckEditable(deckId);
+        } catch (RuntimeException ex) {
+            model.addAttribute("deck", deck);
+            model.addAttribute("flashcards", flashcardService.getFlashcardsByDeck(deckId));
+            model.addAttribute("flashcardForm", new FlashcardFormDTO());
+            model.addAttribute("error", ex.getMessage());
+            return "deck/detail";
+        }
         DeckFormDTO form = new DeckFormDTO();
         form.setTitle(deck.getTitle());
         form.setDescription(deck.getDescription());
-        form.setIsPublic(deck.getIsPublic());
 
         model.addAttribute("deck", deck);
         model.addAttribute("deckForm", form);
@@ -96,8 +104,23 @@ public class DeckController {
             model.addAttribute("deck", deckService.getDeckById(deckId));
             return "deck/form";
         }
-        deckService.updateDeck(deckId, form);
-        redirectAttributes.addFlashAttribute("success", "Cập nhật deck thành công!");
+        try {
+            deckService.updateDeck(deckId, form);
+            redirectAttributes.addFlashAttribute("success", "Cập nhật deck thành công!");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/decks/" + deckId;
+    }
+
+    @PostMapping("/{deckId}/submit-share")
+    public String submitShare(@PathVariable Integer deckId, RedirectAttributes redirectAttributes) {
+        try {
+            deckService.submitDeckForReview(deckId, demoUser.getCurrentUserId());
+            redirectAttributes.addFlashAttribute("success", "Đã gửi deck để admin duyệt chia sẻ.");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/decks/" + deckId;
     }
 
@@ -109,9 +132,14 @@ public class DeckController {
     @PostMapping("/{deckId}/delete")
     public String deleteDeck(@PathVariable Integer deckId,
                              RedirectAttributes redirectAttributes) {
-        deckService.deleteDeck(deckId);
-        redirectAttributes.addFlashAttribute("success", "Đã xóa deck.");
-        return "redirect:/";
+        try {
+            deckService.deleteDeck(deckId);
+            redirectAttributes.addFlashAttribute("success", "Đã xóa deck.");
+            return "redirect:/";
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/decks/" + deckId;
+        }
     }
 
     // =====================================================
@@ -132,8 +160,12 @@ public class DeckController {
             model.addAttribute("flashcards", flashcards);
             return "deck/detail";
         }
-        flashcardService.createFlashcard(deckId, form);
-        redirectAttributes.addFlashAttribute("success", "Thêm flashcard thành công!");
+        try {
+            flashcardService.createFlashcard(deckId, form);
+            redirectAttributes.addFlashAttribute("success", "Thêm flashcard thành công!");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/decks/" + deckId;
     }
 
@@ -146,6 +178,7 @@ public class DeckController {
     public String editFlashcardForm(@PathVariable Integer deckId,
                                     @PathVariable Integer flashcardId,
                                     Model model) {
+        deckService.ensureDeckEditable(deckId);
         Flashcard card = flashcardService.getFlashcardById(flashcardId);
         FlashcardFormDTO form = new FlashcardFormDTO();
         form.setFrontContent(card.getFrontContent());
@@ -174,8 +207,12 @@ public class DeckController {
             model.addAttribute("flashcardId", flashcardId);
             return "deck/flashcard-form";
         }
-        flashcardService.updateFlashcard(flashcardId, form);
-        redirectAttributes.addFlashAttribute("success", "Cập nhật flashcard thành công!");
+        try {
+            flashcardService.updateFlashcard(flashcardId, form);
+            redirectAttributes.addFlashAttribute("success", "Cập nhật flashcard thành công!");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/decks/" + deckId;
     }
 
@@ -188,8 +225,12 @@ public class DeckController {
     public String deleteFlashcard(@PathVariable Integer deckId,
                                   @PathVariable Integer flashcardId,
                                   RedirectAttributes redirectAttributes) {
-        flashcardService.deleteFlashcard(flashcardId);
-        redirectAttributes.addFlashAttribute("success", "Đã xóa flashcard.");
+        try {
+            flashcardService.deleteFlashcard(flashcardId);
+            redirectAttributes.addFlashAttribute("success", "Đã xóa flashcard.");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/decks/" + deckId;
     }
 }

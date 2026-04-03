@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Admin Duyệt Deck</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<nav>
+    <a th:href="@{/}">← Trang chủ</a>
+    <span> | </span>
+    <a th:href="@{/public-decks}">Deck công khai</a>
+</nav>
+<hr/>
+
+<div th:if="${success}" class="msg-success" th:text="${success}"></div>
+<div th:if="${error}" class="msg-error" th:text="${error}"></div>
+
+<h2>Danh sách deck chờ duyệt</h2>
+
+<div th:if="${#lists.isEmpty(pendingDecks)}">
+    <p>Không có deck nào đang chờ duyệt.</p>
+</div>
+
+<table th:unless="${#lists.isEmpty(pendingDecks)}" border="1" cellpadding="8" cellspacing="0">
+    <thead>
+    <tr>
+        <th>Deck ID</th>
+        <th>Tiêu đề</th>
+        <th>Mô tả</th>
+        <th>Người tạo</th>
+        <th>Hành động</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="deck : ${pendingDecks}">
+        <td th:text="${deck.deckId}">1</td>
+        <td th:text="${deck.title}">Title</td>
+        <td th:text="${deck.description != null ? deck.description : '—'}">Description</td>
+        <td th:text="${deck.createdBy != null ? deck.createdBy.username : '—'}">username</td>
+        <td>
+            <a th:href="@{/decks/{id}(id=${deck.deckId})}">
+                <button>Xem</button>
+            </a>
+            <form th:action="@{/admin/decks/{id}/approve(id=${deck.deckId})}" method="post" style="display:inline;">
+                <button type="submit">Approve</button>
+            </form>
+            <form th:action="@{/admin/decks/{id}/reject(id=${deck.deckId})}" method="post" style="display:inline;">
+                <button type="submit" style="background-color: #f44336; color: white;">Reject</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

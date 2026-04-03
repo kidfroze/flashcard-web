@@ -2,6 +2,7 @@ package com.example.ankiclone.service;
 
 import com.example.ankiclone.dto.FlashcardFormDTO;
 import com.example.ankiclone.model.Deck;
+import com.example.ankiclone.model.DeckStatus;
 import com.example.ankiclone.model.Flashcard;
 import com.example.ankiclone.repository.DeckRepository;
 import com.example.ankiclone.repository.FlashcardRepository;
@@ -31,6 +32,7 @@ public class FlashcardService {
     public Flashcard createFlashcard(Integer deckId, FlashcardFormDTO form) {
         Deck deck = deckRepository.findById(deckId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy deck id=" + deckId));
+        assertDeckEditable(deck);
 
         Flashcard card = Flashcard.builder()
                 .deck(deck)
@@ -48,6 +50,7 @@ public class FlashcardService {
     @Transactional
     public Flashcard updateFlashcard(Integer flashcardId, FlashcardFormDTO form) {
         Flashcard card = getFlashcardById(flashcardId);
+        assertDeckEditable(card.getDeck());
         card.setFrontContent(form.getFrontContent());
         card.setBackContent(form.getBackContent());
         card.setExampleSentence(form.getExampleSentence());
@@ -59,6 +62,14 @@ public class FlashcardService {
 
     @Transactional
     public void deleteFlashcard(Integer flashcardId) {
-        flashcardRepository.deleteById(flashcardId);
+        Flashcard card = getFlashcardById(flashcardId);
+        assertDeckEditable(card.getDeck());
+        flashcardRepository.delete(card);
+    }
+
+    private void assertDeckEditable(Deck deck) {
+        if (deck.getStatus() == DeckStatus.PENDING) {
+            throw new RuntimeException("Deck đang chờ duyệt, bạn không thể chỉnh sửa lúc này.");
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.example.ankiclone.service;
 import com.example.ankiclone.dto.DeckFormDTO;
 import com.example.ankiclone.dto.DeckSummaryDTO;
 import com.example.ankiclone.model.Deck;
+import com.example.ankiclone.model.DeckStatus;
 import com.example.ankiclone.model.Flashcard;
 import com.example.ankiclone.model.User;
 import com.example.ankiclone.model.UserDeck;
@@ -47,7 +48,7 @@ public class DeckService {
                 .deckId(deck.getDeckId())
                 .title(deck.getTitle())
                 .description(deck.getDescription())
-                .isPublic(deck.getIsPublic())
+                .status(deck.getStatus())
                 .totalCards(total)
                 .newCards(newCards)
                 .learningCards(learning)
@@ -64,10 +65,15 @@ public class DeckService {
 
     public Deck getPublicDeckById(Integer deckId) {
         Deck deck = getDeckById(deckId);
-        if (deck.getIsPublic() == null || !deck.getIsPublic()) {
+        if (deck.getStatus() != DeckStatus.APPROVED) {
             throw new RuntimeException("Deck này không được chia sẻ công khai.");
         }
         return deck;
+    }
+
+    public void ensureDeckEditable(Integer deckId) {
+        Deck deck = getDeckById(deckId);
+        assertDeckEditable(deck);
     }
 
     @Transactional
@@ -78,7 +84,7 @@ public class DeckService {
         Deck deck = Deck.builder()
                 .title(form.getTitle())
                 .description(form.getDescription())
-                .isPublic(form.getIsPublic() != null ? form.getIsPublic() : true)
+                .status(DeckStatus.PRIVATE)
                 .createdBy(user)
                 .build();
 
@@ -88,15 +94,17 @@ public class DeckService {
     @Transactional
     public Deck updateDeck(Integer deckId, DeckFormDTO form) {
         Deck deck = getDeckById(deckId);
+        assertDeckEditable(deck);
         deck.setTitle(form.getTitle());
         deck.setDescription(form.getDescription());
-        deck.setIsPublic(form.getIsPublic() != null ? form.getIsPublic() : deck.getIsPublic());
         return deckRepository.save(deck);
     }
 
     @Transactional
     public void deleteDeck(Integer deckId) {
-        deckRepository.deleteById(deckId);
+        Deck deck = getDeckById(deckId);
+        assertDeckEditable(deck);
+        deckRepository.delete(deck);
     }
 
     // ========== LƯU DECK CÔNG KHAI ==========
@@ -134,7 +142,7 @@ public class DeckService {
                 .createdBy(user)
                 .title(sourceDeck.getTitle())
                 .description(sourceDeck.getDescription())
-                .isPublic(false)
+                .status(DeckStatus.PRIVATE)
                 .build();
 
         newDeck = deckRepository.save(newDeck);
@@ -160,7 +168,7 @@ public class DeckService {
     // ========== DECK CÔNG KHAI (KHÁM PHÁ) ==========
 
     public List<DeckSummaryDTO> getPublicDecks(Integer userId) {
-        List<Deck> publicDecks = deckRepository.findByIsPublicTrue();
+        List<Deck> publicDecks = deckRepository.findByStatus(DeckStatus.APPROVED);
         return publicDecks.stream()
                 .map(deck -> buildDeckSummary(deck, userId))
                 .collect(Collectors.toList());
@@ -173,12 +181,12 @@ public class DeckService {
         String query = keyword.trim();
 
         // Bước 1: vào DB tìm theo tiêu đề hoặc mô tả, chỉ các deck public
-        List<Deck> publicDecks = deckRepository.searchPublicDecksByKeyword(query);
+        List<Deck> publicDecks = deckRepository.searchDecksByStatusAndKeyword(DeckStatus.APPROVED, query);
 
         // Bước 2: nếu không có kết quả hoặc cần xử lý ký tự dấu tiếng Việt, lọc bằng Java không dấu
         if (publicDecks.isEmpty()) {
             String normalizedQuery = normalize(query);
-            publicDecks = deckRepository.findByIsPublicTrue().stream()
+            publicDecks = deckRepository.findByStatus(DeckStatus.APPROVED).stream()
                     .filter(deck -> containsIgnoreCaseAndAccent(deck.getTitle(), query, normalizedQuery)
                             || containsIgnoreCaseAndAccent(deck.getDescription(), query, normalizedQuery))
                     .toList();
@@ -212,7 +220,47 @@ public class DeckService {
     @Transactional
     public void hidePublicDeck(Integer deckId) {
         Deck deck = getDeckById(deckId);
-        deck.setIsPublic(false);
+        deck.setStatus(DeckStatus.REJECTED);
         deckRepository.save(deck);
+    }
+
+    @Transactional
+    public void submitDeckForReview(Integer deckId, Integer userId) {
+        Deck deck = getDeckById(deckId);
+        if (!deck.getCreatedBy().getUserId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền gửi duyệt deck này.");
+        }
+        if (deck.getStatus() == DeckStatus.PENDING) {
+            throw new RuntimeException("Deck này đang chờ admin duyệt.");
+        }
+        if (deck.getStatus() == DeckStatus.APPROVED) {
+            throw new RuntimeException("Deck này đã được duyệt công khai.");
+        }
+        deck.setStatus(DeckStatus.PENDING);
+        deckRepository.save(deck);
+    }
+
+    public List<Deck> getPendingDecks() {
+        return deckRepository.findByStatus(DeckStatus.PENDING);
+    }
+
+    @Transactional
+    public void approveDeck(Integer deckId) {
+        Deck deck = getDeckById(deckId);
+        deck.setStatus(DeckStatus.APPROVED);
+        deckRepository.save(deck);
+    }
+
+    @Transactional
+    public void rejectDeck(Integer deckId) {
+        Deck deck = getDeckById(deckId);
+        deck.setStatus(DeckStatus.REJECTED);
+        deckRepository.save(deck);
+    }
+
+    private void assertDeckEditable(Deck deck) {
+        if (deck.getStatus() == DeckStatus.PENDING) {
+            throw new RuntimeException("Deck đang chờ duyệt, bạn không thể chỉnh sửa lúc này.");
+        }
     }
 }
