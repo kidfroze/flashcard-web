@@ -16,6 +16,12 @@ public interface DeckRepository extends JpaRepository<Deck, Integer> {
     // Lấy tất cả deck public
     List<Deck> findByIsPublicTrue();
 
+    // Tìm kiếm các deck public theo keyword ở title hoặc description
+    @Query("SELECT d FROM Deck d WHERE d.isPublic = TRUE AND " +
+            "(LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(d.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<Deck> searchPublicDecksByKeyword(@Param("keyword") String keyword);
+
     // Deck mà user đã lưu (qua UserDecks)
     @Query("SELECT ud.deck FROM UserDeck ud WHERE ud.user.userId = :userId")
     List<Deck> findDecksByUserId(@Param("userId") Integer userId);

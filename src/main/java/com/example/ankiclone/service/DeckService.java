@@ -166,6 +166,49 @@ public class DeckService {
                 .collect(Collectors.toList());
     }
 
+    public List<DeckSummaryDTO> searchPublicDecks(Integer userId, String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getPublicDecks(userId);
+        }
+        String query = keyword.trim();
+
+        // Bước 1: vào DB tìm theo tiêu đề hoặc mô tả, chỉ các deck public
+        List<Deck> publicDecks = deckRepository.searchPublicDecksByKeyword(query);
+
+        // Bước 2: nếu không có kết quả hoặc cần xử lý ký tự dấu tiếng Việt, lọc bằng Java không dấu
+        if (publicDecks.isEmpty()) {
+            String normalizedQuery = normalize(query);
+            publicDecks = deckRepository.findByIsPublicTrue().stream()
+                    .filter(deck -> containsIgnoreCaseAndAccent(deck.getTitle(), query, normalizedQuery)
+                            || containsIgnoreCaseAndAccent(deck.getDescription(), query, normalizedQuery))
+                    .toList();
+        }
+
+        return publicDecks.stream()
+                .map(deck -> buildDeckSummary(deck, userId))
+                .collect(Collectors.toList());
+    }
+
+    private boolean containsIgnoreCaseAndAccent(String value, String query, String normalizedQuery) {
+        if (value == null) {
+            return false;
+        }
+        String lowerValue = value.toLowerCase();
+        if (lowerValue.contains(query.toLowerCase())) {
+            return true;
+        }
+        String normalizedValue = normalize(value);
+        return normalizedValue.contains(normalizedQuery);
+    }
+
+    private String normalize(String input) {
+        if (input == null) {
+            return "";
+        }
+        String normalized = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{M}", "").toLowerCase();
+    }
+
     @Transactional
     public void hidePublicDeck(Integer deckId) {
         Deck deck = getDeckById(deckId);

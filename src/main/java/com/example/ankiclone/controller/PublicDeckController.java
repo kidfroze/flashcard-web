@@ -9,12 +9,15 @@ import com.example.ankiclone.service.DeckService;
 import com.example.ankiclone.service.FlashcardService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -24,15 +27,31 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PublicDeckController {
 
+    private static final Logger log = LoggerFactory.getLogger(PublicDeckController.class);
     private final DeckService deckService;
     private final FlashcardService flashcardService;
     private final DemoUserConfig demoUser;
 
     @GetMapping
-    public String listPublicDecks(Model model) {
+    public String listPublicDecks(@RequestParam(name = "q", required = false) String query,
+            HttpSession session,
+            Model model) {
         Integer userId = demoUser.getCurrentUserId();
-        List<DeckSummaryDTO> publicDecks = deckService.getPublicDecks(userId);
+        List<DeckSummaryDTO> publicDecks;
+        if (query != null && !query.trim().isEmpty()) {
+            String trimmed = query.trim();
+            log.info("PublicDeck search keyword='{}'", trimmed);
+            publicDecks = deckService.searchPublicDecks(userId, trimmed);
+            model.addAttribute("query", trimmed);
+        } else {
+            log.info("PublicDeck list all public items");
+            publicDecks = deckService.getPublicDecks(userId);
+        }
+        log.info("Found {} public decks", publicDecks.size());
+        String role = (String) session.getAttribute(AuthController.SESSION_ROLE);
+        model.addAttribute("role", role);
         model.addAttribute("publicDecks", publicDecks);
+        model.addAttribute("publicDeckCount", publicDecks.size());
         return "public-deck/list";
     }
 

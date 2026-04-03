@@ -22,8 +22,19 @@
 
     <h2>Deck được chia sẻ công khai</h2>
 
+    <form th:action="@{/public-decks}" method="get" style="margin-bottom: 16px;">
+        <input type="text" name="q" placeholder="Tìm kiếm theo tiêu đề hoặc mô tả" th:value="${query}" style="width: 280px;" />
+        <button type="submit">Tìm kiếm</button>
+        <a th:href="@{/public-decks}">Xóa</a>
+    </form>
+
+    <div th:if="${query != null}">
+        <p>Kết quả tìm kiếm cho: <strong th:text="${query}"></strong></p>
+        <p style="color: #555; font-size: 0.9em;">(Search xử lý cả dấu tiếng Việt và chữ không dấu)</p>
+    </div>
+
     <div th:if="${#lists.isEmpty(publicDecks)}">
-        <p>Hiện chưa có deck công khai nào.</p>
+        <p>Không tìm thấy deck công khai phù hợp.</p>
     </div>
 
     <table th:unless="${#lists.isEmpty(publicDecks)}" border="1" cellpadding="8" cellspacing="0">
