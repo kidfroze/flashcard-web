@@ -4,74 +4,128 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Deck được chia sẻ</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <title>Khám phá Deck | AnkarD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .search-input {
+            @apply w-full md:w-96 px-5 py-3 rounded-2xl border border-gray-200 bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none shadow-sm;
+            border-width: 1px;
+        }
+
+        .deck-card {
+            @apply bg-white p-6 rounded-[2rem] shadow-[0_10px_30px_rgba(0, 0, 0, 0.02)] border border-gray-50 hover:shadow-[0_20px_40px_rgba(0, 0, 0, 0.05)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between;
+        }
+    </style>
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col text-gray-900">
 
-    <nav>
-        <a th:href="@{/}">← Trang chủ</a>
-        <span> | </span>
-        <a th:href="@{/decks/new}">+ Tạo Deck Mới</a>
+    <nav class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-8">
+                <a th:href="@{/}" class="text-2xl font-black text-blue-600 tracking-tight italic">AnkarD</a>
+                <span
+                    class="hidden md:block text-[10px] font-black text-gray-300 tracking-[0.3em] uppercase italic">Cộng
+                    đồng chia sẻ</span>
+            </div>
+            <div class="flex gap-4">
+                <a th:href="@{/}" class="text-sm font-bold text-gray-500 hover:text-blue-600 transition">Trang chủ</a>
+                <a th:href="@{/decks/new}" class="text-sm font-bold text-blue-600 hover:underline">+ Tạo mới</a>
+            </div>
+        </div>
     </nav>
-    <hr />
 
-    <div th:if="${success}" class="msg-success" th:text="${success}"></div>
-    <div th:if="${error}" class="msg-error" th:text="${error}"></div>
+    <main class="max-w-7xl mx-auto w-full px-4 py-12">
 
-    <h2>Deck được chia sẻ công khai</h2>
+        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div class="space-y-2 text-center md:text-left">
+                <h1 class="text-4xl font-extrabold tracking-tight text-gray-900">Khám phá thư viện</h1>
+                <p class="text-gray-400 italic">Tìm kiếm và học hỏi từ những bộ thẻ được chia sẻ bởi cộng đồng.</p>
+            </div>
 
-    <form th:action="@{/public-decks}" method="get" style="margin-bottom: 16px;">
-        <input type="text" name="q" placeholder="Tìm kiếm theo tiêu đề hoặc mô tả" th:value="${query}" style="width: 280px;" />
-        <button type="submit">Tìm kiếm</button>
-        <a th:href="@{/public-decks}">Xóa</a>
-    </form>
+            <form th:action="@{/public-decks}" method="get" class="flex items-center gap-2">
+                <div class="relative">
+                    <input type="text" name="q" placeholder="Tìm tiêu đề, mô tả..." th:value="${query}"
+                        class="search-input" />
+                </div>
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-blue-100 transition-all active:scale-[0.95]">
+                    Tìm
+                </button>
+                <a th:href="@{/public-decks}" th:if="${query != null}"
+                    class="text-xs font-bold text-gray-400 hover:text-red-500 transition ml-2">XÓA BỘ LỌC</a>
+            </form>
+        </header>
 
-    <div th:if="${query != null}">
-        <p>Kết quả tìm kiếm cho: <strong th:text="${query}"></strong></p>
-        <p style="color: #555; font-size: 0.9em;">(Search xử lý cả dấu tiếng Việt và chữ không dấu)</p>
-    </div>
+        <div th:if="${success}"
+            class="mb-8 p-4 bg-green-50 text-green-700 rounded-2xl border border-green-100 text-center font-bold"
+            th:text="${success}"></div>
+        <div th:if="${error}"
+            class="mb-8 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-center font-bold"
+            th:text="${error}"></div>
 
-    <div th:if="${#lists.isEmpty(publicDecks)}">
-        <p>Không tìm thấy deck công khai phù hợp.</p>
-    </div>
+        <div th:if="${query != null}" class="mb-8 px-2 flex items-center gap-2">
+            <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase italic">Kết quả
+                cho:</span>
+            <strong class="text-gray-900" th:text="${query}"></strong>
+        </div>
 
-    <table th:unless="${#lists.isEmpty(publicDecks)}" border="1" cellpadding="8" cellspacing="0">
-        <thead>
-            <tr>
-                <th>Tên Deck</th>
-                <th>Mô tả</th>
-                <th>Tổng</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="d : ${publicDecks}">
-                <td>
-                    <a th:href="@{/public-decks/{id}(id=${d.deckId})}" th:text="${d.title}">Tên deck</a>
-                </td>
-                <td th:text="${d.description != null ? d.description : '—'}">Mô tả</td>
-                <td th:text="${d.totalCards}">0</td>
-                <td>
-                    <a th:href="@{/public-decks/{id}(id=${d.deckId})}">
-                        <button>Xem</button>
+        <div th:if="${#lists.isEmpty(publicDecks)}"
+            class="py-32 text-center bg-white rounded-[3rem] border border-dashed border-gray-200">
+            <p class="text-gray-300 text-xl font-medium italic">Không tìm thấy bộ thẻ nào phù hợp.</p>
+            <a th:href="@{/public-decks}" class="text-blue-600 font-bold mt-4 inline-block hover:underline">Quay lại
+                danh sách đầy đủ</a>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(publicDecks)}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div th:each="d : ${publicDecks}" class="deck-card group">
+                <div class="space-y-4">
+                    <div class="flex justify-between items-start">
+                        <span
+                            class="px-3 py-1 bg-gray-50 text-gray-400 text-[10px] font-black rounded-full uppercase tracking-widest"
+                            th:text="${d.totalCards} + ' thẻ'">0 thẻ</span>
+                        <div class="flex gap-1" th:if="${role != null and role.toLowerCase() == 'admin'}">
+                            <form th:action="@{/public-decks/{id}/hide(id=${d.deckId})}" method="post"
+                                onsubmit="return confirm('Ẩn deck này?');">
+                                <button type="submit" class="p-2 text-red-300 hover:text-red-600 transition">Ẩn</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        <a th:href="@{/public-decks/{id}(id=${d.deckId})}" th:text="${d.title}">Tên bộ thẻ</a>
+                    </h3>
+
+                    <p class="text-gray-500 text-sm italic line-clamp-3 leading-relaxed"
+                        th:text="${d.description != null ? d.description : 'Bộ thẻ này chưa có mô tả chi tiết...'}">Mô
+                        tả</p>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between gap-4">
+                    <a th:href="@{/public-decks/{id}(id=${d.deckId})}"
+                        class="text-xs font-black text-gray-400 hover:text-blue-600 uppercase tracking-widest transition">
+                        Chi tiết
                     </a>
-                    &nbsp;
-                    <form th:action="@{/public-decks/{id}/import(id=${d.deckId})}" method="post" style="display:inline;"
-                        onsubmit="return confirm('Import deck này về tài khoản của bạn? Deck mới sẽ là bản sao để bạn chỉnh sửa.');">
-                        <button type="submit">Import</button>
+
+                    <form th:action="@{/public-decks/{id}/import(id=${d.deckId})}" method="post"
+                        onsubmit="return confirm('Import deck này về tài khoản của bạn?');">
+                        <button type="submit"
+                            class="px-5 py-2.5 bg-gray-900 text-white text-xs font-black rounded-xl hover:bg-blue-600 transition-all uppercase tracking-widest">
+                            Import
+                        </button>
                     </form>
-                    &nbsp;
-                    <form th:if="${role != null and role.toLowerCase() == 'admin'}"
-                        th:action="@{/public-decks/{id}/hide(id=${d.deckId})}" method="post" style="display:inline;"
-                        onsubmit="return confirm('Ẩn deck này khỏi danh sách công khai?');">
-                        <button type="submit" style="background-color: #f44336; color: white;">Ẩn</button>
-                    </form>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
 
 </body>
 

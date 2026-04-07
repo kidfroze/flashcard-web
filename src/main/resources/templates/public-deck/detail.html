@@ -1,61 +1,137 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8"/>
-    <title th:text="${deck.title} + ' - Deck được chia sẻ'">Deck được chia sẻ</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${deck.title} + ' - Deck được chia sẻ'">Chi tiết Deck Chia Sẻ | AnkarD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+    </style>
 </head>
-<body>
 
-<nav>
-    <a th:href="@{/public-decks}">← Deck được chia sẻ</a>
-    <span> | </span>
-    <a th:href="@{/}">Trang chủ</a>
-</nav>
-<hr/>
+<body class="min-h-screen flex flex-col">
 
-<div th:if="${success}" class="msg-success" th:text="${success}"></div>
-<div th:if="${error}"   class="msg-error"   th:text="${error}"></div>
+    <nav class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <a th:href="@{/}" class="text-2xl font-black text-blue-600 tracking-tight italic">AnkarD</a>
+                <div
+                    class="hidden md:flex gap-4 text-[10px] font-black text-gray-400 tracking-[0.2em] uppercase italic">
+                    <a th:href="@{/public-decks}" class="hover:text-blue-600 transition">Deck Cộng Đồng</a>
+                    <span>/</span>
+                    <span class="text-gray-900" th:text="${deck.title}">Chi tiết</span>
+                </div>
+            </div>
+            <a th:href="@{/}" class="text-sm font-bold text-gray-500 hover:text-blue-600 transition">Trang chủ</a>
+        </div>
+    </nav>
 
-<h2 th:text="${deck.title}">Tên Deck</h2>
-<p th:text="${deck.description != null ? deck.description : '—'}">Mô tả</p>
-<p>Tổng số card: <strong th:text="${#lists.size(flashcards)}">0</strong></p>
+    <main class="max-w-5xl mx-auto w-full px-4 py-12 space-y-10">
 
-<form th:action="@{/public-decks/{id}/import(id=${deck.deckId})}" method="post"
-      style="display:inline;"
-      onsubmit="return confirm('Import deck này về tài khoản của bạn? Deck mới sẽ là bản sao để bạn chỉnh sửa.');">
-    <button type="submit">Import deck này</button>
-</form>
+        <div th:if="${success}"
+            class="p-5 bg-green-50 text-green-700 rounded-[2rem] border border-green-100 text-center font-bold shadow-sm"
+            th:text="${success}"></div>
+        <div th:if="${error}"
+            class="p-5 bg-red-50 text-red-700 rounded-[2rem] border border-red-100 text-center font-bold shadow-sm"
+            th:text="${error}"></div>
 
-<hr/>
+        <section
+            class="bg-white p-8 md:p-14 rounded-[3rem] shadow-[0_30px_80px_rgba(0,0,0,0.03)] border border-gray-50 flex flex-col md:flex-row justify-between items-center gap-10">
+            <div class="flex-grow space-y-5 text-center md:text-left">
+                <div
+                    class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest">
+                    🌏 Deck Công Khai
+                </div>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight" th:text="${deck.title}">Tên
+                    Deck</h1>
+                <p class="text-gray-400 text-xl italic font-medium max-w-2xl"
+                    th:text="${deck.description != null ? deck.description : 'Không có mô tả cho bộ thẻ này.'}">Mô tả
+                </p>
 
-<h3>Danh sách Flashcard</h3>
+                <div class="flex flex-wrap justify-center md:justify-start gap-8 pt-4">
+                    <div class="flex flex-col">
+                        <span class="text-3xl font-black text-gray-900" th:text="${#lists.size(flashcards)}">0</span>
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Flashcards</span>
+                    </div>
+                    <div class="w-[1px] bg-gray-100 hidden md:block"></div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 italic">Người
+                            đăng</span>
+                        <span class="text-sm font-bold text-gray-700"
+                            th:text="${deck.createdBy != null ? deck.createdBy.username : 'Ẩn danh'}">Admin</span>
+                    </div>
+                </div>
+            </div>
 
-<div th:if="${#lists.isEmpty(flashcards)}">
-    <p>Deck này chưa có flashcard.</p>
-</div>
+            <div class="w-full md:w-auto min-w-[280px]">
+                <form th:action="@{/public-decks/{id}/import(id=${deck.deckId})}" method="post"
+                    onsubmit="return confirm('Import deck này về tài khoản của bạn? Bạn có thể chỉnh sửa bản sao này sau khi import.');">
+                    <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-5 px-8 rounded-2xl shadow-xl shadow-blue-100 transition-all active:scale-[0.96] text-lg uppercase tracking-wider">
+                        Import Bộ Thẻ
+                    </button>
+                </form>
+                <p class="text-[11px] text-gray-400 text-center mt-4 italic font-medium px-4 leading-relaxed">
+                    * Sau khi import, bộ thẻ sẽ trở thành bản sao cá nhân của bạn.
+                </p>
+            </div>
+        </section>
 
-<table th:unless="${#lists.isEmpty(flashcards)}" border="1" cellpadding="8" cellspacing="0">
-    <thead>
-    <tr>
-        <th>#</th>
-        <th>Mặt trước</th>
-        <th>Mặt sau</th>
-        <th>Phát âm</th>
-        <th>Câu ví dụ</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="card, iterStat : ${flashcards}">
-        <td th:text="${iterStat.index + 1}">1</td>
-        <td th:text="${card.frontContent}">Front</td>
-        <td th:text="${card.backContent}">Back</td>
-        <td th:text="${card.pronunciation != null ? card.pronunciation : '—'}">—</td>
-        <td th:text="${card.exampleSentence != null ? card.exampleSentence : '—'}">—</td>
-    </tr>
-    </tbody>
-</table>
+        <section class="bg-white rounded-[3rem] shadow-sm border border-gray-50 overflow-hidden">
+            <div class="p-10 border-b border-gray-50 bg-gray-50/30 flex justify-between items-center">
+                <h3 class="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+                    <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
+                    Nội dung bộ thẻ
+                </h3>
+            </div>
+
+            <div th:if="${#lists.isEmpty(flashcards)}" class="py-32 text-center text-gray-300 italic">
+                Bộ thẻ này hiện chưa có nội dung.
+            </div>
+
+            <div th:unless="${#lists.isEmpty(flashcards)}" class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-gray-50/80">
+                            <th
+                                class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest w-20 text-center">
+                                #</th>
+                            <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Mặt
+                                trước</th>
+                            <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Mặt sau
+                                / Ví dụ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        <tr th:each="card, iterStat : ${flashcards}" class="hover:bg-indigo-50/30 transition-all group">
+                            <td class="px-8 py-6 text-sm font-black text-gray-200 group-hover:text-indigo-200 text-center"
+                                th:text="${iterStat.index + 1}">1</td>
+                            <td class="px-8 py-6">
+                                <div class="font-bold text-gray-900 text-lg" th:text="${card.frontContent}">Front</div>
+                                <div class="text-xs text-blue-500 font-bold mt-1 tracking-wide uppercase italic"
+                                    th:text="${card.pronunciation}">/pronun/</div>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="text-base text-gray-700 font-semibold" th:text="${card.backContent}">Back
+                                </div>
+                                <div class="text-xs text-gray-400 italic mt-2 leading-relaxed max-w-xl"
+                                    th:text="${card.exampleSentence}">Example sentence...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+
 
 </body>
-</html>
 
+</html>

@@ -5,43 +5,75 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title th:replace="${title}">AnkarD</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .nav-link {
+            @apply text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors uppercase tracking-widest;
+        }
+    </style>
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col antialiased text-gray-900">
 
-    <!-- NAV -->
-    <nav>
-        <div style="display:inline-block;">
-            <a th:href="@{/}">Decks</a>
-            <span> | </span>
-            <a th:href="@{/decks/new}">Tạo Deck</a>
+    <header class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-10">
+                <a th:href="@{/}" class="text-2xl font-black text-blue-600 tracking-tight italic">AnkarD</a>
+                <nav class="hidden lg:flex gap-8 items-center">
+                    <a th:href="@{/}" class="nav-link">Bộ thẻ</a>
+                    <a th:href="@{/decks/new}" class="nav-link text-blue-600 hover:text-blue-700">+ Tạo mới</a>
+                    <a th:href="@{/public-decks}" class="nav-link">Cộng đồng</a>
+                </nav>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div th:if="${username != null}" class="flex items-center gap-4">
+                    <span class="hidden md:block text-xs font-bold text-gray-400 uppercase tracking-tighter italic">
+                        Hi, <span class="text-gray-900 font-black" th:text="${username}">User</span>
+                    </span>
+                    <a th:href="@{/account}" class="p-2 hover:bg-gray-100 rounded-xl transition" title="Tài khoản">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </a>
+                    <form th:action="@{/logout}" method="post" class="inline">
+                        <button type="submit"
+                            class="text-[10px] font-black text-red-400 hover:text-red-600 uppercase tracking-widest transition">Rời
+                            đi</button>
+                    </form>
+                </div>
+
+                <a th:if="${username == null}" th:href="@{/login}"
+                    class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 transition active:scale-[0.95]">
+                    Đăng nhập
+                </a>
+            </div>
         </div>
-        <div style="display:inline-block; float:right;">
-            <span th:if="${username != null}">Xin chào <strong th:text="${username}"></strong></span>
-            <a th:if="${username != null}" th:href="@{/account}" style="margin-left:12px;">Tài khoản</a>
-            <form th:if="${username != null}" th:action="@{/logout}" method="post"
-                style="display:inline; margin-left:12px;">
-                <button type="submit">Đăng xuất</button>
-            </form>
-            <a th:if="${username == null}" th:href="@{/login}" style="margin-left:12px;">Đăng nhập</a>
+    </header>
+
+    <div class="fixed top-20 left-1/2 -translate-x-1/2 z-[60] w-full max-w-xl px-4 pointer-events-none">
+        <div th:if="${success}"
+            class="pointer-events-auto p-4 bg-green-600 text-white rounded-2xl shadow-2xl flex items-center justify-center gap-3 animate-bounce">
+            <span class="text-sm font-bold tracking-wide" th:text="${success}">Thành công!</span>
         </div>
-    </nav>
-
-    <hr />
-
-    <!-- Flash messages -->
-    <div th:if="${success}" class="msg-success">
-        <span th:text="${success}"></span>
-    </div>
-    <div th:if="${error}" class="msg-error">
-        <span th:text="${error}"></span>
+        <div th:if="${error}"
+            class="pointer-events-auto p-4 bg-red-600 text-white rounded-2xl shadow-2xl flex items-center justify-center gap-3 animate-pulse">
+            <span class="text-sm font-bold tracking-wide" th:text="${error}">Lỗi!</span>
+        </div>
     </div>
 
-    <!-- Nội dung chính -->
-    <main th:replace="${content}">
-        <!-- page content goes here -->
+    <main class="flex-grow w-full">
+        <th:block th:replace="${content}"></th:block>
     </main>
+
+
 
     <script th:src="@{/js/main.js}"></script>
 </body>
