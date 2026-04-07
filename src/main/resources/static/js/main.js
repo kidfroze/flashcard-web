@@ -1,4 +1,4 @@
-// AnkiClone - main.js
+// Ankard- main.js
 // Placeholder cho frontend dev tuỳ chỉnh sau
 
 // Tự động ẩn thông báo success/error sau 4 giây
