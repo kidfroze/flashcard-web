@@ -32,7 +32,8 @@ public class FlashcardService {
     public Flashcard createFlashcard(Integer deckId, FlashcardFormDTO form) {
         Deck deck = deckRepository.findById(deckId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy deck id=" + deckId));
-        assertDeckEditable(deck);
+        // Cho phép thêm flashcard mới ngay cả khi deck đang chờ admin duyệt (PENDING).
+        // (Sửa/xóa flashcard sẽ vẫn bị chặn ở các hàm update/delete.)
 
         Flashcard card = Flashcard.builder()
                 .deck(deck)
@@ -50,7 +51,7 @@ public class FlashcardService {
     @Transactional
     public Flashcard updateFlashcard(Integer flashcardId, FlashcardFormDTO form) {
         Flashcard card = getFlashcardById(flashcardId);
-        assertDeckEditable(card.getDeck());
+        assertDeckEditableForUpdateOrDelete(card.getDeck());
         card.setFrontContent(form.getFrontContent());
         card.setBackContent(form.getBackContent());
         card.setExampleSentence(form.getExampleSentence());
@@ -63,11 +64,11 @@ public class FlashcardService {
     @Transactional
     public void deleteFlashcard(Integer flashcardId) {
         Flashcard card = getFlashcardById(flashcardId);
-        assertDeckEditable(card.getDeck());
+        assertDeckEditableForUpdateOrDelete(card.getDeck());
         flashcardRepository.delete(card);
     }
 
-    private void assertDeckEditable(Deck deck) {
+    private void assertDeckEditableForUpdateOrDelete(Deck deck) {
         if (deck.getStatus() == DeckStatus.PENDING) {
             throw new RuntimeException("Deck đang chờ duyệt, bạn không thể chỉnh sửa lúc này.");
         }
