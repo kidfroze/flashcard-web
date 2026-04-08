@@ -1,127 +1,122 @@
 package com.example.ankiclone.service;
 
+import com.example.ankiclone.fsrs.FsrsEngine;
+import com.example.ankiclone.fsrs.FsrsReviewGrade;
+import com.example.ankiclone.fsrs.FsrsScheduler;
+import com.example.ankiclone.fsrs.FsrsWeights;
 import com.example.ankiclone.model.FlashcardProgress;
 import com.example.ankiclone.model.ReviewHistory;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * Thuật toán Spaced Repetition đơn giản dựa trên SM-2.
+ * Lịch ôn theo FSRS-4.5 (Stability, Difficulty, Retrievability).
+ * Trọng số mặc định theo wiki open-spaced-repetition.
  *
- * Quy tắc:
- *  - again  → quay lại học sau <10 phút, status = LEARNING
- *  - hard   → ôn sau <15 phút (interval giữ nguyên, easeFactor giảm)
- *  - good   → ôn theo interval hiện tại * easeFactor
- *  - easy   → ôn sau interval * easeFactor * 1.3, easeFactor tăng
+ * <p>Nếu {@code spring.jpa.hibernate.ddl-auto=none}, chạy {@code src/main/resources/db/fsrs-add-columns.sql}.</p>
  */
 @Service
 public class SpacedRepetitionService {
 
-    private static final BigDecimal MIN_EASE = new BigDecimal("1.30");
-    private static final BigDecimal EASE_BONUS = new BigDecimal("0.15");
-    private static final BigDecimal EASE_PENALTY = new BigDecimal("0.20");
-    private static final int AGAIN_MINUTES = 10;
-    private static final int HARD_MINUTES  = 15;
+    private final List<Double> weights = FsrsWeights.DEFAULT_W;
+    private final double targetRetention = FsrsEngine.DEFAULT_TARGET_RETENTION;
 
     public void applyReview(FlashcardProgress progress, ReviewHistory.ReviewResult result) {
         LocalDateTime now = LocalDateTime.now();
-        progress.setLastReview(now);
+        LocalDateTime previousLastReview = progress.getLastReview();
+        Double prevS = progress.getFsrsStability();
+        Double prevD = progress.getFsrsDifficulty();
+
         progress.setReviewCount(progress.getReviewCount() + 1);
-
-        switch (result) {
-            case again -> applyAgain(progress, now);
-            case hard  -> applyHard(progress, now);
-            case good  -> applyGood(progress, now);
-            case easy  -> applyEasy(progress, now);
-        }
-    }
-
-    // ========== LOGIC TỪNG NÚT ==========
-
-    private void applyAgain(FlashcardProgress p, LocalDateTime now) {
-        p.setWrongCount(p.getWrongCount() + 1);
-        p.setIntervalDays(1);
-        p.setStatus(FlashcardProgress.Status.LEARNING);
-        p.setNextReview(now.plusMinutes(AGAIN_MINUTES));
-
-        // Giảm ease factor
-        BigDecimal newEase = p.getEaseFactor().subtract(EASE_PENALTY);
-        p.setEaseFactor(newEase.max(MIN_EASE).setScale(2, RoundingMode.HALF_UP));
-    }
-
-    private void applyHard(FlashcardProgress p, LocalDateTime now) {
-        p.setWrongCount(p.getWrongCount() + 1);
-        p.setStatus(FlashcardProgress.Status.LEARNING);
-        p.setNextReview(now.plusMinutes(HARD_MINUTES));
-
-        // Giảm ease factor nhẹ hơn again
-        BigDecimal newEase = p.getEaseFactor().subtract(new BigDecimal("0.15"));
-        p.setEaseFactor(newEase.max(MIN_EASE).setScale(2, RoundingMode.HALF_UP));
-        // interval giữ nguyên
-    }
-
-    private void applyGood(FlashcardProgress p, LocalDateTime now) {
-        p.setCorrectCount(p.getCorrectCount() + 1);
-
-        int newInterval;
-        if (p.getIntervalDays() <= 1) {
-            newInterval = 1; // lần đầu good → 1 ngày
+        if (result == ReviewHistory.ReviewResult.again) {
+            progress.setWrongCount(progress.getWrongCount() + 1);
         } else {
-            // interval mới = interval cũ * easeFactor
-            newInterval = (int) Math.round(
-                p.getIntervalDays() * p.getEaseFactor().doubleValue()
-            );
+            progress.setCorrectCount(progress.getCorrectCount() + 1);
         }
 
-        p.setIntervalDays(newInterval);
-        p.setNextReview(now.plusDays(newInterval));
-
-        if (newInterval >= 21) {
-            p.setStatus(FlashcardProgress.Status.MASTERED);
-            p.setMasteryLevel(p.getMasteryLevel() + 1);
-        } else {
-            p.setStatus(FlashcardProgress.Status.REVIEW);
-        }
-    }
-
-    private void applyEasy(FlashcardProgress p, LocalDateTime now) {
-        p.setCorrectCount(p.getCorrectCount() + 1);
-
-        // Tăng ease factor
-        BigDecimal newEase = p.getEaseFactor().add(EASE_BONUS).setScale(2, RoundingMode.HALF_UP);
-        p.setEaseFactor(newEase);
-
-        int newInterval = (int) Math.round(
-            p.getIntervalDays() * newEase.doubleValue() * 1.3
+        FsrsReviewGrade grade = mapGrade(result);
+        FsrsScheduler.ScheduleOutcome out = FsrsScheduler.scheduleAfterReview(
+                now,
+                previousLastReview,
+                prevS,
+                prevD,
+                grade,
+                weights,
+                targetRetention
         );
-        if (newInterval < 4) newInterval = 4; // tối thiểu 4 ngày với easy
 
-        p.setIntervalDays(newInterval);
-        p.setNextReview(now.plusDays(newInterval));
-        p.setStatus(FlashcardProgress.Status.REVIEW);
-        p.setMasteryLevel(p.getMasteryLevel() + 1);
+        progress.setLastReview(now);
+        progress.setFsrsStability(out.newStabilityDays());
+        progress.setFsrsDifficulty(out.newDifficulty());
+        LocalDateTime next = result == ReviewHistory.ReviewResult.again
+                ? now.plusMinutes(10)
+                : out.nextReview();
+        double intervalForStatus = result == ReviewHistory.ReviewResult.again
+                ? 10.0 / (24.0 * 60.0)
+                : out.scheduledIntervalDays();
+        progress.setNextReview(next);
+        progress.setIntervalDays(intervalDaysStored(intervalForStatus));
+        progress.setStatus(resolveStatus(intervalForStatus));
+        if (intervalForStatus >= 21.0) {
+            progress.setMasteryLevel(progress.getMasteryLevel() + 1);
+        }
     }
-
-    // ========== HELPER: tính interval dự kiến để hiển thị trên nút ==========
 
     public String getNextReviewLabel(FlashcardProgress progress, ReviewHistory.ReviewResult result) {
+        LocalDateTime now = LocalDateTime.now();
+        FsrsReviewGrade grade = mapGrade(result);
+        FsrsScheduler.ScheduleOutcome out = FsrsScheduler.scheduleAfterReview(
+                now,
+                progress.getLastReview(),
+                progress.getFsrsStability(),
+                progress.getFsrsDifficulty(),
+                grade,
+                weights,
+                targetRetention
+        );
+        if (result == ReviewHistory.ReviewResult.again) {
+            return "<10m";
+        }
+        return formatIntervalLabel(out.scheduledIntervalDays(), out.nextReview(), now);
+    }
+
+    private static FsrsReviewGrade mapGrade(ReviewHistory.ReviewResult result) {
         return switch (result) {
-            case again -> "<" + AGAIN_MINUTES + "m";
-            case hard  -> "<" + HARD_MINUTES + "m";
-            case good  -> {
-                int interval = progress.getIntervalDays() <= 1 ? 1
-                    : (int) Math.round(progress.getIntervalDays() * progress.getEaseFactor().doubleValue());
-                yield interval + "d";
-            }
-            case easy  -> {
-                double easeAfter = progress.getEaseFactor().add(EASE_BONUS).doubleValue();
-                int interval = (int) Math.round(progress.getIntervalDays() * easeAfter * 1.3);
-                if (interval < 4) interval = 4;
-                yield interval + "d";
-            }
+            case again -> FsrsReviewGrade.AGAIN;
+            case hard -> FsrsReviewGrade.HARD;
+            case good -> FsrsReviewGrade.GOOD;
+            case easy -> FsrsReviewGrade.EASY;
         };
+    }
+
+    private static FlashcardProgress.Status resolveStatus(double scheduledDays) {
+        if (scheduledDays < 1.0) {
+            return FlashcardProgress.Status.LEARNING;
+        }
+        if (scheduledDays >= 21.0) {
+            return FlashcardProgress.Status.MASTERED;
+        }
+        return FlashcardProgress.Status.REVIEW;
+    }
+
+    private static int intervalDaysStored(double scheduledDays) {
+        if (scheduledDays < 1.0) {
+            return 0;
+        }
+        return Math.max(1, (int) Math.round(scheduledDays));
+    }
+
+    private static String formatIntervalLabel(double scheduledDays, LocalDateTime nextReview, LocalDateTime now) {
+        if (scheduledDays < 1.0 / 96.0) {
+            long minutes = Math.max(1, java.time.Duration.between(now, nextReview).toMinutes());
+            return "<" + Math.max(10, minutes) + "m";
+        }
+        if (scheduledDays < 1.0) {
+            long minutes = Math.max(1, java.time.Duration.between(now, nextReview).toMinutes());
+            return minutes + "m";
+        }
+        return Math.max(1, Math.round(scheduledDays)) + "d";
     }
 }

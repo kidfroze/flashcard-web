@@ -47,6 +47,14 @@ public class FlashcardProgress {
     @Column(name = "next_review")
     private LocalDateTime nextReview;
 
+    /** FSRS: stability S (ngày), null = chưa gán trạng thái FSRS (thẻ mới / dữ liệu cũ). */
+    @Column(name = "fsrs_stability")
+    private Double fsrsStability;
+
+    /** FSRS: difficulty D trong [1, 10]. */
+    @Column(name = "fsrs_difficulty")
+    private Double fsrsDifficulty;
+
     @Convert(converter = FlashcardProgressStatusConverter.class)
     @Column(name = "status")
     private Status status = Status.NEW;
