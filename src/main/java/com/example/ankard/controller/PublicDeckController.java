@@ -77,7 +77,7 @@ public class PublicDeckController {
     public String hidePublicDeck(@PathVariable Integer deckId, HttpSession session,
             RedirectAttributes redirectAttributes) {
         String role = (String) session.getAttribute(AuthController.SESSION_ROLE);
-        if (!"admin".equals(role)) {
+        if (!("admin".equalsIgnoreCase(role) || "super_admin".equalsIgnoreCase(role))) {
             redirectAttributes.addFlashAttribute("error", "Bạn không có quyền thực hiện hành động này.");
             return "redirect:/public-decks";
         }

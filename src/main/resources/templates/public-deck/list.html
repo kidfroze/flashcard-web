@@ -90,7 +90,8 @@
                         <span
                             class="px-3 py-1 bg-gray-50 text-gray-400 text-[10px] font-black rounded-full uppercase tracking-widest"
                             th:text="${d.totalCards} + ' thẻ'">0 thẻ</span>
-                        <div class="flex gap-1" th:if="${role != null and role.toLowerCase() == 'admin'}">
+                        <div class="flex gap-1"
+                            th:if="${role != null and (role.toLowerCase() == 'admin' or role.toLowerCase() == 'super_admin')}">
                             <form th:action="@{/public-decks/{id}/hide(id=${d.deckId})}" method="post"
                                 onsubmit="return confirm('Ẩn deck này?');">
                                 <button type="submit" class="p-2 text-red-300 hover:text-red-600 transition">Ẩn</button>

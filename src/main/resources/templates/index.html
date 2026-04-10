@@ -36,8 +36,10 @@
                 <div class="hidden lg:flex gap-6 items-center">
                     <a th:href="@{/decks/new}" class="nav-link text-blue-600">+ Tạo Deck</a>
                     <a th:href="@{/public-decks}" class="nav-link">Cộng đồng</a>
-                    <th:block th:if="${role != null and role.toLowerCase() == 'admin'}">
+                    <th:block
+                        th:if="${role != null and (role.toLowerCase() == 'admin' or role.toLowerCase() == 'super_admin')}">
                         <a th:href="@{/admin/decks/pending}" class="nav-link text-orange-500">Duyệt bài</a>
+                        <a th:href="@{/admin/users}" class="nav-link text-red-500">Tài khoản</a>
                     </th:block>
                 </div>
             </div>

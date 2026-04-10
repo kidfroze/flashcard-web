@@ -56,6 +56,6 @@ public class AdminDeckController {
 
     private boolean isAdmin(HttpSession session) {
         String role = (String) session.getAttribute(AuthController.SESSION_ROLE);
-        return role != null && "admin".equalsIgnoreCase(role);
+        return role != null && ("admin".equalsIgnoreCase(role) || "super_admin".equalsIgnoreCase(role));
     }
 }

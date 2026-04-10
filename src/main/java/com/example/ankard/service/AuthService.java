@@ -8,6 +8,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -48,6 +50,33 @@ public class AuthService {
     public User getUserById(Integer userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại."));
+    }
+
+    public List<User> findUsers(String query) {
+        if (query == null || query.isBlank()) {
+            return userRepository.findAll();
+        }
+        return userRepository.findByUsernameContainingIgnoreCaseOrderByUsernameAsc(query.trim());
+    }
+
+    @Transactional
+    public void updateRole(Integer userId, String roleName) {
+        if (roleName == null || roleName.isBlank()) {
+            throw new RuntimeException("Vai trò không được để trống.");
+        }
+        User user = getUserById(userId);
+        try {
+            User.Role newRole = User.Role.valueOf(roleName.trim().toLowerCase());
+            user.setRole(newRole);
+            userRepository.save(user);
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException("Vai trò không hợp lệ.");
+        }
+    }
+
+    @Transactional
+    public void deleteUser(Integer userId) {
+        userRepository.deleteById(userId);
     }
 
     @Transactional
