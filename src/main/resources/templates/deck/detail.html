@@ -122,6 +122,24 @@
                         📤 Gửi duyệt chia sẻ
                     </button>
                 </form>
+
+                <form th:if="${deck.status.name() == 'PENDING'}"
+                    th:action="@{/decks/{id}/cancel-share-review(id=${deck.deckId})}" method="post"
+                    onsubmit="return confirm('Hủy yêu cầu duyệt chia sẻ deck này?')">
+                    <button type="submit"
+                        class="btn-action w-full bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 shadow-sm italic">
+                        ↩ Hủy yêu cầu duyệt
+                    </button>
+                </form>
+
+                <form th:if="${deck.status.name() == 'APPROVED'}"
+                    th:action="@{/decks/{id}/stop-share(id=${deck.deckId})}" method="post"
+                    onsubmit="return confirm('Ngừng chia sẻ deck này? Sau khi ngừng, deck sẽ chuyển về riêng tư.')">
+                    <button type="submit"
+                        class="btn-action w-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 shadow-sm italic">
+                        ⛔ Ngừng chia sẻ
+                    </button>
+                </form>
             </div>
         </section>
 

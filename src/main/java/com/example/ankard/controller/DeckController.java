@@ -124,6 +124,28 @@ public class DeckController {
         return "redirect:/decks/" + deckId;
     }
 
+    @PostMapping("/{deckId}/cancel-share-review")
+    public String cancelShareReview(@PathVariable Integer deckId, RedirectAttributes redirectAttributes) {
+        try {
+            deckService.cancelDeckReview(deckId, demoUser.getCurrentUserId());
+            redirectAttributes.addFlashAttribute("success", "Đã hủy yêu cầu duyệt chia sẻ.");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/decks/" + deckId;
+    }
+
+    @PostMapping("/{deckId}/stop-share")
+    public String stopShare(@PathVariable Integer deckId, RedirectAttributes redirectAttributes) {
+        try {
+            deckService.stopSharingDeck(deckId, demoUser.getCurrentUserId());
+            redirectAttributes.addFlashAttribute("success", "Đã ngừng chia sẻ deck.");
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/decks/" + deckId;
+    }
+
     // =====================================================
     // DECK: Xóa
     // =====================================================

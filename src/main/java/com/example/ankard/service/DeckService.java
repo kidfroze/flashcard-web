@@ -59,8 +59,10 @@ public class DeckService {
     // ========== CRUD DECK ==========
 
     public Deck getDeckById(Integer deckId) {
-        return deckRepository.findById(deckId)
+        Deck deck = deckRepository.findById(deckId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy deck id=" + deckId));
+        normalizeLegacyShareStatus(deck);
+        return deck;
     }
 
     public Deck getPublicDeckById(Integer deckId) {
@@ -240,6 +242,28 @@ public class DeckService {
         deckRepository.save(deck);
     }
 
+    @Transactional
+    public void cancelDeckReview(Integer deckId, Integer userId) {
+        Deck deck = getDeckById(deckId);
+        assertDeckOwner(deck, userId);
+        if (deck.getStatus() != DeckStatus.PENDING) {
+            throw new RuntimeException("Chỉ có thể hủy khi deck đang chờ admin duyệt.");
+        }
+        deck.setStatus(DeckStatus.PRIVATE);
+        deckRepository.save(deck);
+    }
+
+    @Transactional
+    public void stopSharingDeck(Integer deckId, Integer userId) {
+        Deck deck = getDeckById(deckId);
+        assertDeckOwner(deck, userId);
+        if (deck.getStatus() != DeckStatus.APPROVED) {
+            throw new RuntimeException("Chỉ có thể ngừng chia sẻ khi deck đang public.");
+        }
+        deck.setStatus(DeckStatus.PRIVATE);
+        deckRepository.save(deck);
+    }
+
     public List<Deck> getPendingDecks() {
         return deckRepository.findByStatus(DeckStatus.PENDING);
     }
@@ -261,6 +285,21 @@ public class DeckService {
     private void assertDeckEditable(Deck deck) {
         if (deck.getStatus() == DeckStatus.PENDING) {
             throw new RuntimeException("Deck đang chờ duyệt, bạn không thể chỉnh sửa lúc này.");
+        }
+    }
+
+    private void assertDeckOwner(Deck deck, Integer userId) {
+        if (!deck.getCreatedBy().getUserId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền thực hiện hành động này.");
+        }
+    }
+
+    @Transactional
+    protected void normalizeLegacyShareStatus(Deck deck) {
+        if (deck.getStatus() == DeckStatus.UNSHARE_PENDING || deck.getStatus() == DeckStatus.UNSHARE_PENDI) {
+            // New business rule: user can unshare immediately, no admin approval needed.
+            deck.setStatus(DeckStatus.PRIVATE);
+            deckRepository.save(deck);
         }
     }
 }

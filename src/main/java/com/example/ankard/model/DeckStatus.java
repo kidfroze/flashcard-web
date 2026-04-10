@@ -4,5 +4,8 @@ public enum DeckStatus {
     PRIVATE,
     PENDING,
     APPROVED,
-    REJECTED
+    REJECTED,
+    // Legacy statuses kept for backward compatibility with old DB data.
+    UNSHARE_PENDING,
+    UNSHARE_PENDI
 }
