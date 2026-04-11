@@ -23,13 +23,7 @@
 
 <body class="antialiased text-gray-900">
 
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-4xl mx-auto px-4 h-14 flex items-center">
-            <a th:href="@{/}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition">
-                ← Quay lại trang chủ
-            </a>
-        </div>
-    </nav>
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <div class="max-w-4xl mx-auto py-10 px-4">
         <header class="mb-8">

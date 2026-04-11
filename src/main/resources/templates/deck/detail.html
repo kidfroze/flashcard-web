@@ -33,20 +33,7 @@
 
 <body class="min-h-screen flex flex-col">
 
-    <nav class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-8">
-                <a th:href="@{/}" class="text-2xl font-black text-blue-600 tracking-tight italic">AnkarD</a>
-                <div class="hidden md:flex gap-4 text-[11px] font-black text-gray-400 tracking-widest uppercase">
-                    <a th:href="@{/}" class="hover:text-blue-600 transition">Trang chủ</a>
-                    <span>/</span>
-                    <span class="text-gray-900" th:text="${deck.title}">Chi tiết Deck</span>
-                </div>
-            </div>
-            <a th:href="@{/decks/new}" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition">+ TẠO DECK
-                MỚI</a>
-        </div>
-    </nav>
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <main class="max-w-7xl mx-auto w-full px-4 py-10 space-y-10">
 

@@ -17,19 +17,7 @@
 
 <body class="antialiased text-gray-800">
 
-    <nav class="bg-white border-b border-gray-200">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex space-x-6 text-sm font-medium">
-                    <a th:href="@{/}" class="text-gray-500 hover:text-indigo-600 transition-colors">← Trang chủ</a>
-                    <span class="text-gray-300">|</span>
-                    <a th:href="@{/public-decks}" class="text-gray-500 hover:text-indigo-600 transition-colors">Deck
-                        công khai</a>
-                </div>
-                <div class="text-xs uppercase tracking-widest font-semibold text-gray-400">Admin Panel</div>
-            </div>
-        </div>
-    </nav>
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <main class="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
 

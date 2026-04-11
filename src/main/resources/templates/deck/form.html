@@ -30,19 +30,7 @@
 
 <body class="min-h-screen flex flex-col">
 
-    <header class="p-6">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <a th:href="@{/}" class="text-2xl font-black text-blue-600 tracking-tight italic">AnkarD</a>
-            <div class="flex gap-4 text-[11px] font-black text-gray-400 tracking-widest uppercase italic">
-                <a th:href="@{/}" class="hover:text-blue-600 transition">Trang chủ</a>
-                <th:block th:if="${deck != null}">
-                    <span>/</span>
-                    <a th:href="@{/decks/{id}(id=${deck.deckId})}" class="hover:text-blue-600 transition">Quay lại
-                        deck</a>
-                </th:block>
-            </div>
-        </div>
-    </header>
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <main class="flex-grow flex items-center justify-center px-4 py-12">
         <div class="w-full max-w-[550px]">
