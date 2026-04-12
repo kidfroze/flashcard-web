@@ -82,4 +82,20 @@ public class StudyController {
         // Redirect về trang học để lấy card tiếp theo (PRG pattern)
         return "redirect:/study/" + deckId;
     }
+
+    /**
+     * POST /study/{deckId}/reset-all
+     * Reset toàn bộ deck để ôn tập lại ngay từ đầu (không xóa lịch sử).
+     */
+    @PostMapping("/{deckId}/reset-all")
+    public String resetAll(@PathVariable Integer deckId, RedirectAttributes redirectAttributes) {
+        Integer userId = demoUser.getCurrentUserId();
+        try {
+            studyService.resetDeckForReview(deckId, userId);
+            redirectAttributes.addFlashAttribute("success", "Đã đặt lại deck. Bắt đầu ôn tập lại toàn bộ!");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/study/" + deckId;
+    }
 }

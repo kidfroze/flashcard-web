@@ -154,4 +154,17 @@ public class StudyService {
                                 .showAnswer(false)
                                 .build();
         }
+
+        /**
+         * Reset toàn bộ progress của deck về trạng thái cần ôn tập ngay.
+         * - Card đã có progress: nextReview = now, status = REVIEW
+         * - Card chưa học (NEW): tự động xuất hiện qua query findDueFlashcards
+         */
+        @Transactional
+        public void resetDeckForReview(Integer deckId, Integer userId) {
+                deckRepository.findById(deckId)
+                                .orElseThrow(() -> new RuntimeException("Không tìm thấy deck"));
+                progressRepository.resetDeckProgress(deckId, userId, LocalDateTime.now());
+        }
 }
+

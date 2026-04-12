@@ -2,9 +2,13 @@ package com.example.ankard.repository;
 
 import com.example.ankard.model.FlashcardProgress;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -32,7 +36,7 @@ public interface FlashcardProgressRepository extends JpaRepository<FlashcardProg
         FlashcardProgress.Status status
     );
 
-    // Backwards-compatible helper method names (optional)
+    // Backwards-compatible helper method names
     default long countLearningCards(Integer deckId, Integer userId) {
         return countByFlashcard_Deck_DeckIdAndUser_UserIdAndStatus(deckId, userId, FlashcardProgress.Status.LEARNING);
     }
@@ -40,4 +44,34 @@ public interface FlashcardProgressRepository extends JpaRepository<FlashcardProg
     default long countReviewCards(Integer deckId, Integer userId) {
         return countByFlashcard_Deck_DeckIdAndUser_UserIdAndStatus(deckId, userId, FlashcardProgress.Status.REVIEW);
     }
+
+    // Lấy tất cả progress của user trong một deck
+    @Query("""
+        SELECT fp FROM FlashcardProgress fp
+        WHERE fp.flashcard.deck.deckId = :deckId
+          AND fp.user.userId = :userId
+    """)
+    List<FlashcardProgress> findAllByDeckAndUser(
+        @Param("deckId") Integer deckId,
+        @Param("userId") Integer userId
+    );
+
+    /**
+     * Reset nextReview về ngay lập tức cho toàn bộ card đã có progress trong deck.
+     * Card MASTERED sẽ được đặt lại về status REVIEW để xuất hiện trong session.
+     */
+    @Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query("""
+        UPDATE FlashcardProgress fp
+        SET fp.nextReview = :now,
+            fp.status = 'REVIEW'
+        WHERE fp.flashcard.deck.deckId = :deckId
+          AND fp.user.userId = :userId
+    """)
+    int resetDeckProgress(
+        @Param("deckId") Integer deckId,
+        @Param("userId") Integer userId,
+        @Param("now") LocalDateTime now
+    );
 }
