@@ -1,7 +1,9 @@
 package com.example.ankard.controller;
 
 import com.example.ankard.model.Deck;
+import com.example.ankard.model.Flashcard;
 import com.example.ankard.service.DeckService;
+import com.example.ankard.service.FlashcardService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -20,6 +22,21 @@ import java.util.List;
 public class AdminDeckController {
 
     private final DeckService deckService;
+    private final FlashcardService flashcardService;
+
+    @GetMapping("/{deckId}/view")
+    public String viewDeck(@PathVariable Integer deckId, HttpSession session,
+                           Model model, RedirectAttributes redirectAttributes) {
+        if (!isAdmin(session)) {
+            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền truy cập trang admin.");
+            return "redirect:/";
+        }
+        Deck deck = deckService.getDeckById(deckId);
+        List<Flashcard> flashcards = flashcardService.getFlashcardsByDeck(deckId);
+        model.addAttribute("deck", deck);
+        model.addAttribute("flashcards", flashcards);
+        return "admin/deck-view";
+    }
 
     @GetMapping("/pending")
     public String pendingDecks(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
