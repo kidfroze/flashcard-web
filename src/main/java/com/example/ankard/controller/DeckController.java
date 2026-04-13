@@ -9,6 +9,8 @@ import com.example.ankard.service.DeckService;
 import com.example.ankard.service.FlashcardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -40,9 +42,9 @@ public class DeckController {
     /** POST /decks — Lưu deck mới */
     @PostMapping
     public String createDeck(@Valid @ModelAttribute("deckForm") DeckFormDTO form,
-                             BindingResult bindingResult,
-                             Model model,
-                             RedirectAttributes redirectAttributes) {
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             return "deck/form";
         }
@@ -96,10 +98,10 @@ public class DeckController {
     /** POST /decks/{deckId}/edit — Lưu sửa deck */
     @PostMapping("/{deckId}/edit")
     public String updateDeck(@PathVariable Integer deckId,
-                             @Valid @ModelAttribute("deckForm") DeckFormDTO form,
-                             BindingResult bindingResult,
-                             Model model,
-                             RedirectAttributes redirectAttributes) {
+            @Valid @ModelAttribute("deckForm") DeckFormDTO form,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("deck", deckService.getDeckById(deckId));
             return "deck/form";
@@ -153,7 +155,7 @@ public class DeckController {
     /** POST /decks/{deckId}/delete — Xóa deck */
     @PostMapping("/{deckId}/delete")
     public String deleteDeck(@PathVariable Integer deckId,
-                             RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         try {
             deckService.deleteDeck(deckId);
             redirectAttributes.addFlashAttribute("success", "Đã xóa deck.");
@@ -171,10 +173,10 @@ public class DeckController {
     /** POST /decks/{deckId}/flashcards — Thêm flashcard mới */
     @PostMapping("/{deckId}/flashcards")
     public String addFlashcard(@PathVariable Integer deckId,
-                               @Valid @ModelAttribute("flashcardForm") FlashcardFormDTO form,
-                               BindingResult bindingResult,
-                               Model model,
-                               RedirectAttributes redirectAttributes) {
+            @Valid @ModelAttribute("flashcardForm") FlashcardFormDTO form,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             Deck deck = deckService.getDeckById(deckId);
             List<Flashcard> flashcards = flashcardService.getFlashcardsByDeck(deckId);
@@ -191,6 +193,26 @@ public class DeckController {
         return "redirect:/decks/" + deckId;
     }
 
+    /**
+     * API POST /decks/{deckId}/flashcards/api-add — Thêm flashcard không reload
+     * trang
+     */
+    @PostMapping("/{deckId}/flashcards/api-add")
+    @ResponseBody // Quan trọng: Trả về dữ liệu JSON thay vì View
+    public ResponseEntity<?> apiAddFlashcard(@PathVariable Integer deckId,
+            @Valid @RequestBody FlashcardFormDTO form) {
+        try {
+            // Gọi service để lưu thẻ mới
+            Flashcard newCard = flashcardService.createFlashcard(deckId, form);
+
+            // Trả về đối tượng vừa tạo để JavaScript có thể lấy dữ liệu cập nhật lên giao
+            // diện
+            return ResponseEntity.ok(newCard);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(500).body(ex.getMessage());
+        }
+    }
+
     // =====================================================
     // FLASHCARD: Sửa
     // =====================================================
@@ -198,8 +220,8 @@ public class DeckController {
     /** GET /decks/{deckId}/flashcards/{flashcardId}/edit */
     @GetMapping("/{deckId}/flashcards/{flashcardId}/edit")
     public String editFlashcardForm(@PathVariable Integer deckId,
-                                    @PathVariable Integer flashcardId,
-                                    Model model) {
+            @PathVariable Integer flashcardId,
+            Model model) {
         deckService.ensureDeckEditable(deckId);
         Flashcard card = flashcardService.getFlashcardById(flashcardId);
         FlashcardFormDTO form = new FlashcardFormDTO();
@@ -219,11 +241,11 @@ public class DeckController {
     /** POST /decks/{deckId}/flashcards/{flashcardId}/edit */
     @PostMapping("/{deckId}/flashcards/{flashcardId}/edit")
     public String updateFlashcard(@PathVariable Integer deckId,
-                                  @PathVariable Integer flashcardId,
-                                  @Valid @ModelAttribute("flashcardForm") FlashcardFormDTO form,
-                                  BindingResult bindingResult,
-                                  Model model,
-                                  RedirectAttributes redirectAttributes) {
+            @PathVariable Integer flashcardId,
+            @Valid @ModelAttribute("flashcardForm") FlashcardFormDTO form,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("deckId", deckId);
             model.addAttribute("flashcardId", flashcardId);
@@ -245,8 +267,8 @@ public class DeckController {
     /** POST /decks/{deckId}/flashcards/{flashcardId}/delete */
     @PostMapping("/{deckId}/flashcards/{flashcardId}/delete")
     public String deleteFlashcard(@PathVariable Integer deckId,
-                                  @PathVariable Integer flashcardId,
-                                  RedirectAttributes redirectAttributes) {
+            @PathVariable Integer flashcardId,
+            RedirectAttributes redirectAttributes) {
         try {
             flashcardService.deleteFlashcard(flashcardId);
             redirectAttributes.addFlashAttribute("success", "Đã xóa flashcard.");

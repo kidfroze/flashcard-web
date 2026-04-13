@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "flashcards")
@@ -21,6 +22,7 @@ public class Flashcard {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deck_id", nullable = false)
+    @JsonIgnore
     private Deck deck;
 
     @Column(name = "front_content", nullable = false, columnDefinition = "TEXT")
@@ -48,6 +50,7 @@ public class Flashcard {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "flashcard", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<FlashcardTag> flashcardTags;
 
     @PreUpdate

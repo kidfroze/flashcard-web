@@ -139,52 +139,39 @@
                     Thêm thẻ
                 </h3>
 
-                <form th:action="@{/decks/{id}/flashcards(id=${deck.deckId})}" th:object="${flashcardForm}"
-                    method="post" class="flex flex-col gap-6">
+                <form id="flashcardForm" class="flex flex-col gap-6">
                     <div class="flex flex-col gap-2">
-                        <label class="text-xs font-black text-gray-500 ml-1 uppercase tracking-widest">Mặt trước
-                            *</label>
-                        <input type="text" th:field="*{frontContent}" placeholder="Từ vựng / Câu hỏi"
-                            class="form-input-main" />
-                        <p th:if="${#fields.hasErrors('frontContent')}" th:errors="*{frontContent}"
-                            class="text-[10px] text-red-500 font-bold mt-1 ml-1"></p>
+                        <label class="...">Mặt trước *</label>
+                        <input type="text" id="frontContent" name="frontContent" placeholder="Từ vựng / Câu hỏi"
+                            class="form-input-main" required />
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label class="text-xs font-black text-gray-500 ml-1 uppercase tracking-widest">Mặt sau *</label>
-                        <input type="text" th:field="*{backContent}" placeholder="Ý nghĩa / Đáp án"
-                            class="form-input-main" />
-                        <p th:if="${#fields.hasErrors('backContent')}" th:errors="*{backContent}"
-                            class="text-[10px] text-red-500 font-bold mt-1 ml-1"></p>
+                        <label class="...">Mặt sau *</label>
+                        <input type="text" id="backContent" name="backContent" placeholder="Ý nghĩa / Đáp án"
+                            class="form-input-main" required />
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label class="text-xs font-black text-gray-500 ml-1 uppercase tracking-widest">Phát âm</label>
-                        <input type="text" th:field="*{pronunciation}" placeholder="/kəmˈpeər/"
+                        <label class="...">Phát âm</label>
+                        <input type="text" id="pronunciation" name="pronunciation" placeholder="/kəmˈpeər/"
                             class="form-input-main" />
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label class="text-xs font-black text-gray-500 ml-1 uppercase tracking-widest">Ví dụ minh
-                            họa</label>
-                        <textarea th:field="*{exampleSentence}" rows="3" placeholder="Viết một câu ví dụ..."
-                            class="form-input-main py-4 resize-none"></textarea>
+                        <label class="...">Ví dụ minh họa</label>
+                        <textarea id="exampleSentence" name="exampleSentence" rows="3"
+                            placeholder="Viết một câu ví dụ..." class="form-input-main py-4 resize-none"></textarea>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[9px] font-black text-gray-400 ml-1 uppercase">Ảnh (URL)</label>
-                            <input type="text" th:field="*{imageUrl}" placeholder="https://..."
-                                class="form-input-sub" />
-                        </div>
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[9px] font-black text-gray-400 ml-1 uppercase">Âm thanh (URL)</label>
-                            <input type="text" th:field="*{audioUrl}" placeholder="https://..."
-                                class="form-input-sub" />
-                        </div>
+                        <input type="text" id="imageUrl" name="imageUrl" placeholder="https://..."
+                            class="form-input-sub" />
+                        <input type="text" id="audioUrl" name="audioUrl" placeholder="https://..."
+                            class="form-input-sub" />
                     </div>
 
-                    <button type="submit"
+                    <button type="button" onclick="submitFlashcard()"
                         class="w-full bg-gray-900 hover:bg-black text-white font-black py-5 px-6 rounded-2xl shadow-xl transition-all active:scale-[0.98] mt-4 uppercase tracking-widest text-sm">
                         + Thêm ngay
                     </button>
@@ -261,7 +248,56 @@
         </div>
     </main>
 
+    <script th:inline="javascript">
+        function submitFlashcard() {
+            // Lấy Deck ID từ Thymeleaf biến 
+            const deckId = [[${ deck.deckId }]];
 
+            // Thu thập dữ liệu từ các input
+            const formData = {
+                frontContent: document.getElementById('frontContent').value,
+                backContent: document.getElementById('backContent').value,
+                pronunciation: document.getElementById('pronunciation').value,
+                exampleSentence: document.getElementById('exampleSentence').value,
+                imageUrl: document.getElementById('imageUrl').value,
+                audioUrl: document.getElementById('audioUrl').value
+            };
+
+            // Kiểm tra nhanh validation (vì không dùng submit mặc định)
+            if (!formData.frontContent || !formData.backContent) {
+                alert("Vui lòng nhập đầy đủ mặt trước và mặt sau!");
+                return;
+            }
+
+            // Gửi dữ liệu bằng Fetch API
+            fetch(`/decks/${deckId}/flashcards/api-add`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // 1. Xóa trắng form để nhập thẻ tiếp theo
+                        document.getElementById('flashcardForm').reset();
+
+                        // 2. Thông báo thành công (có thể dùng Toast thay vì alert cho đẹp)
+                        console.log("Đã thêm thẻ thành công!");
+
+                        // 3. (Tùy chọn) Reload lại bảng danh sách thẻ hoặc thêm hàng mới vào bảng
+                        // Cách đơn giản nhất là load lại phần danh sách thẻ bằng AJAX
+                        location.reload(); // Hoặc bạn có thể dùng kỹ thuật DOM để chèn thêm hàng
+                    } else {
+                        alert("Có lỗi xảy ra khi thêm thẻ!");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Lỗi kết nối!");
+                });
+        }
+    </script>
 </body>
 
 </html>
