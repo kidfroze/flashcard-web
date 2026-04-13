@@ -105,8 +105,9 @@
                     </div>
                     <div th:unless="${deck.newCards + deck.learningCards + deck.reviewCards > 0}" class="flex-grow">
                         <button disabled
-                            class="w-full bg-green-50 text-green-600 font-bold py-3 px-4 rounded-xl border border-green-100 text-xs italic">✓
-                            Đã xong hôm nay</button>
+                            class="w-full bg-gray-200 text-gray-400 font-bold py-3 px-4 rounded-xl cursor-not-allowed text-sm italic uppercase tracking-wider">
+                            Học ngay
+                        </button>
                     </div>
 
                     <a th:href="@{/decks/{id}(id=${deck.deckId})}" class="flex-none">

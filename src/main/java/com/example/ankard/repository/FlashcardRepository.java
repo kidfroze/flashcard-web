@@ -20,26 +20,26 @@ public interface FlashcardRepository extends JpaRepository<Flashcard, Integer> {
 
     // Lấy flashcard cần ôn (next_review <= now hoặc chưa có progress)
     @Query("""
-        SELECT f FROM Flashcard f
-        WHERE f.deck.deckId = :deckId
-          AND (
-            f.flashcardId NOT IN (
-                SELECT fp.flashcard.flashcardId FROM FlashcardProgress fp
-                WHERE fp.user.userId = :userId
-            )
-            OR f.flashcardId IN (
-                SELECT fp.flashcard.flashcardId FROM FlashcardProgress fp
-                WHERE fp.user.userId = :userId
-                  AND (fp.nextReview IS NULL OR fp.nextReview <= :now)
-                  AND fp.status <> :masteredStatus
-            )
-          )
-        ORDER BY f.flashcardId
-    """)
+                SELECT f FROM Flashcard f
+                LEFT JOIN FlashcardProgress fp ON f.flashcardId = fp.flashcard.flashcardId AND fp.user.userId = :userId
+                WHERE f.deck.deckId = :deckId
+                  AND (fp IS NULL OR fp.status <> :masteredStatus)
+                  AND (
+                      fp IS NULL
+                      OR fp.nextReview <= :now
+                      OR fp.status = com.example.ankard.model.FlashcardProgress$Status.LEARNING
+                  )
+                ORDER BY
+                    CASE
+                        WHEN fp IS NULL THEN 0
+                        WHEN fp.nextReview <= :now THEN 1
+                        ELSE 2
+                    END ASC,
+                    fp.nextReview ASC
+            """)
     List<Flashcard> findDueFlashcards(
-        @Param("deckId") Integer deckId,
-        @Param("userId") Integer userId,
-        @Param("now") LocalDateTime now,
-        @Param("masteredStatus") FlashcardProgress.Status masteredStatus
-    );
+            @Param("deckId") Integer deckId,
+            @Param("userId") Integer userId,
+            @Param("now") LocalDateTime now,
+            @Param("masteredStatus") FlashcardProgress.Status masteredStatus);
 }

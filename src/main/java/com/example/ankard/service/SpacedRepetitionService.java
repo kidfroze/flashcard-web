@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
  * Thuật toán Spaced Repetition đơn giản dựa trên SM-2.
  *
  * Quy tắc:
- *  - again  → quay lại học sau <10 phút, status = LEARNING
- *  - hard   → ôn sau <15 phút (interval giữ nguyên, easeFactor giảm)
- *  - good   → ôn theo interval hiện tại * easeFactor
- *  - easy   → ôn sau interval * easeFactor * 1.3, easeFactor tăng
+ * - again → quay lại học sau <10 phút, status = LEARNING
+ * - hard → ôn sau <15 phút (interval giữ nguyên, easeFactor giảm)
+ * - good → ôn theo interval hiện tại * easeFactor
+ * - easy → ôn sau interval * easeFactor * 1.3, easeFactor tăng
  */
 @Service
 public class SpacedRepetitionService {
@@ -23,8 +23,8 @@ public class SpacedRepetitionService {
     private static final BigDecimal MIN_EASE = new BigDecimal("1.30");
     private static final BigDecimal EASE_BONUS = new BigDecimal("0.15");
     private static final BigDecimal EASE_PENALTY = new BigDecimal("0.20");
-    private static final int AGAIN_MINUTES = 10;
-    private static final int HARD_MINUTES  = 15;
+    private static final int AGAIN_MINUTES = 1;
+    private static final int HARD_MINUTES = 10;
 
     public void applyReview(FlashcardProgress progress, ReviewHistory.ReviewResult result) {
         LocalDateTime now = LocalDateTime.now();
@@ -33,9 +33,9 @@ public class SpacedRepetitionService {
 
         switch (result) {
             case again -> applyAgain(progress, now);
-            case hard  -> applyHard(progress, now);
-            case good  -> applyGood(progress, now);
-            case easy  -> applyEasy(progress, now);
+            case hard -> applyHard(progress, now);
+            case good -> applyGood(progress, now);
+            case easy -> applyEasy(progress, now);
         }
     }
 
@@ -72,8 +72,7 @@ public class SpacedRepetitionService {
         } else {
             // interval mới = interval cũ * easeFactor
             newInterval = (int) Math.round(
-                p.getIntervalDays() * p.getEaseFactor().doubleValue()
-            );
+                    p.getIntervalDays() * p.getEaseFactor().doubleValue());
         }
 
         p.setIntervalDays(newInterval);
@@ -95,9 +94,9 @@ public class SpacedRepetitionService {
         p.setEaseFactor(newEase);
 
         int newInterval = (int) Math.round(
-            p.getIntervalDays() * newEase.doubleValue() * 1.3
-        );
-        if (newInterval < 4) newInterval = 4; // tối thiểu 4 ngày với easy
+                p.getIntervalDays() * newEase.doubleValue() * 1.3);
+        if (newInterval < 4)
+            newInterval = 4; // tối thiểu 4 ngày với easy
 
         p.setIntervalDays(newInterval);
         p.setNextReview(now.plusDays(newInterval));
@@ -110,16 +109,17 @@ public class SpacedRepetitionService {
     public String getNextReviewLabel(FlashcardProgress progress, ReviewHistory.ReviewResult result) {
         return switch (result) {
             case again -> "<" + AGAIN_MINUTES + "m";
-            case hard  -> "<" + HARD_MINUTES + "m";
-            case good  -> {
+            case hard -> "<" + HARD_MINUTES + "m";
+            case good -> {
                 int interval = progress.getIntervalDays() <= 1 ? 1
-                    : (int) Math.round(progress.getIntervalDays() * progress.getEaseFactor().doubleValue());
+                        : (int) Math.round(progress.getIntervalDays() * progress.getEaseFactor().doubleValue());
                 yield interval + "d";
             }
-            case easy  -> {
+            case easy -> {
                 double easeAfter = progress.getEaseFactor().add(EASE_BONUS).doubleValue();
                 int interval = (int) Math.round(progress.getIntervalDays() * easeAfter * 1.3);
-                if (interval < 4) interval = 4;
+                if (interval < 4)
+                    interval = 4;
                 yield interval + "d";
             }
         };
